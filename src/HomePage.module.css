@@ -1,0 +1,38 @@
+.test {
+    color: blue;
+}
+
+.mocManager{
+    font-size: 16px;
+    font-weight: bold;
+    color:blue;
+}
+.manageYourChange{
+    font-size: 10px;
+    font-weight: lighter;  
+    font-style: italic; 
+    color:gray;
+}
+.box {
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    margin:10px;
+}
+
+.green {
+    background-color: green;
+    color: white;
+}
+
+.blue {
+    background-color: blue;
+    color:white;
+}
+
+.orange {
+    background-color: orange;
+}
