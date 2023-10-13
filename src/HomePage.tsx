@@ -2,12 +2,16 @@ import banner from './assets/banner.png';
 import styles from './HomePage.module.css';
 import Login from './Login';
 import { Link } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
 type Props = {
     message: string;
 };
 
-const HomePage: React.FC<Props> = ({ message }) => (
+const HomePage: React.FC<Props> = ({ message }) => {
+    const { isAuthenticated, logout } = useAuth();
+
+    return (
     <div>
         <header className="bg-light text-black py-3" >
             <div className="container">
@@ -16,12 +20,20 @@ const HomePage: React.FC<Props> = ({ message }) => (
                         <img src={banner} alt="Header Logo" className="img-fluid header-logo" />
                     </div>
                     <div className="col text-left">
-                        <div className={styles.mocManager+ " text-center"}>MOC MANAGER</div>
+                        <div className={styles.mocManager + " text-center"}>MOC MANAGER</div>
                         <div className={styles.manageYourChange + " text-center"}>manage your change</div>
                     </div>
                     <div className="col-auto ms-auto">
                         <Link to="/login">
-                            <span className={styles.test + " me-2"}>LOGIN</span>
+                            <div>
+                                {isAuthenticated ? (
+                                    <>
+                                        <div onClick={logout}>Logout</div>
+                                    </>
+                                ) : (
+                                    <div>Login</div>
+                                )}
+                            </div>
                         </Link>
                     </div>
                 </div>
@@ -46,7 +58,8 @@ const HomePage: React.FC<Props> = ({ message }) => (
         </div>
 
     </div>
-
-);
+    );
+}
+;
 
 export default HomePage;

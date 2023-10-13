@@ -4,15 +4,19 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import HomePage from './HomePage';
 import Login from './Login';
+import { AuthProvider } from './AuthContext';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/" element={<HomePage message='test'/>} />
-      </Routes>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<HomePage message='test' />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
+
   );
 }
 
