@@ -23,6 +23,8 @@ const Login: React.FC = () => {
     }
   };
 
+  
+  
   const handleForgotPassword = () => {
     sendPasswordResetEmail(auth, email)
       .then(() => {
@@ -68,34 +70,6 @@ const Login: React.FC = () => {
         </form>
       </div>
     </div>
-    // <div>
-    //   <h2>Login</h2>
-    //   <form onSubmit={handleLogin}>
-    //     <div>
-    //       <label>Email:</label>
-    //       <input
-    //         type="email"
-    //         value={email}
-    //         onChange={(e) => setEmail(e.target.value)}
-    //         required
-    //       />
-    //     </div>
-    //     <div>
-    //       <label>Password:</label>
-    //       <input
-    //         type="password"
-    //         value={password}
-    //         onChange={(e) => setPassword(e.target.value)}
-    //         required
-    //       />
-    //     </div>
-    //     {error && <p>{error}</p>}
-    //     <div>
-    //       <button type="submit">Login</button>
-    //     </div>
-    //   </form>
-    //   <a href="#" onClick={handleForgotPassword}>Forgot Password?</a>
-    // </div>
   );
 };
 
