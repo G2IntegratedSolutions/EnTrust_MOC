@@ -26,6 +26,7 @@ const Login: React.FC = () => {
   
   
   const handleForgotPassword = () => {
+    debugger
     sendPasswordResetEmail(auth, email)
       .then(() => {
         alert("Password reset link sent!");
@@ -56,7 +57,7 @@ const Login: React.FC = () => {
             <label htmlFor="password" className="form-label">Password</label>
             <input
               type="password"
-              className="form-control"
+              className="form-control" 
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -64,8 +65,9 @@ const Login: React.FC = () => {
             />
           </div>
           <div className="mb-3 text-end">
-            <a href="#" className="text-decoration-none">Forgot password?</a>
+            <a href="#" className="text-decoration-none" onClick={() => handleForgotPassword()}>Forgot Password?</a>
           </div>
+          /* Give button blue background */
           <button type="submit" className="btn btn-primary w-100">Login</button>
         </form>
       </div>
