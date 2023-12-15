@@ -3,19 +3,36 @@ import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/aut
 import { auth } from './firebaseConfig'; // Adjust the path as needed
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import { getFirestore } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
+
+import 'firebase/firestore';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
+  // Initialize Firestore
+  const db = getFirestore();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      login();
+      //login(email);
+      //let user = {} as any;
+      //user.email = email;
+      
+      debugger;
+      const usersCollectionRef = collection(db, 'Users');
+      const q = query(usersCollectionRef, where("Email", "==", email));
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((doc) => {
+        console.log(doc.data());
+        login(email, doc.data().UserName, doc.data().Role);
+      });      
       navigate('/');
     } catch (error) {
       const err = error as Error;
@@ -62,41 +79,14 @@ const Login: React.FC = () => {
             />
           </div>
           <div className="mb-3 text-end">
-            <a href="#" className="text-decoration-none">Forgot password?</a>
+            <a href="#" className="text-decoration-none" onClick={handleForgotPassword}>Forgot password?</a>
           </div>
           <button type="submit" className="btn btn-primary w-100">Login</button>
         </form>
       </div>
     </div>
-    // <div>
-    //   <h2>Login</h2>
-    //   <form onSubmit={handleLogin}>
-    //     <div>
-    //       <label>Email:</label>
-    //       <input
-    //         type="email"
-    //         value={email}
-    //         onChange={(e) => setEmail(e.target.value)}
-    //         required
-    //       />
-    //     </div>
-    //     <div>
-    //       <label>Password:</label>
-    //       <input
-    //         type="password"
-    //         value={password}
-    //         onChange={(e) => setPassword(e.target.value)}
-    //         required
-    //       />
-    //     </div>
-    //     {error && <p>{error}</p>}
-    //     <div>
-    //       <button type="submit">Login</button>
-    //     </div>
-    //   </form>
-    //   <a href="#" onClick={handleForgotPassword}>Forgot Password?</a>
-    // </div>
   );
 };
+
 
 export default Login;

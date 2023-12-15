@@ -1,8 +1,15 @@
 import React, { createContext, useContext, ReactNode, useState } from 'react';
 
+type User = {
+  email: string;
+  userName: string;
+  role: string;
+};
+
 type AuthContextType = {
   isAuthenticated: boolean;
-  login: () => void;
+  user: User | null;
+  login: (email: string, userName: string, role:string) => void;
   logout: () => void;
 };
 
@@ -14,12 +21,20 @@ type AuthProviderProps = {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [user, setUser] = useState<User | null>(null);
 
-  const login = () => setIsAuthenticated(true);
-  const logout = () => setIsAuthenticated(false);
+  const login = (email: string, userName: string, role: string) => {
+    setIsAuthenticated(true);
+    setUser({ email, userName, role });
+  };
+
+  const logout = () => {
+    setIsAuthenticated(false);
+    setUser(null);
+  };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
