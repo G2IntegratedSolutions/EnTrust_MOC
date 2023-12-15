@@ -27,7 +27,7 @@ const HomePage: React.FC<Props> = ({ message }) => {
                                 <div>
                                     {isAuthenticated ? (
                                         <>
-                                            <div>Logged in as {user?.userName} ({user?.role})</div>
+                                            <div>Logged in as {user?.userName} {user?.isAdmin ? "ADMIN" : "USER"}</div>
                                             <div onClick={logout}>Logout</div>
                                         </>
                                     ) : (
@@ -41,19 +41,27 @@ const HomePage: React.FC<Props> = ({ message }) => {
             </header>
             <div className="row">
                 <div className="col-lg-4">
-                    <div className={`${styles.box} ${styles.green}`}>
-                        <h3>Change Requests</h3>
-                    </div>
+                    {isAuthenticated ? (
+                        <div className={`${styles.box} ${styles.green}`}>
+                            <h3>Change Notifications</h3>
+                        </div>
+                    ) : (<div></div>)}
                 </div>
                 <div className="col-lg-4">
-                    <div className={`${styles.box} ${styles.blue}`}>
-                        <h3>Reports</h3>
-                    </div>
+                    {user?.isAdmin  && (
+                        <div className={`${styles.box} ${styles.blue}`}>
+                            <h3>Reports</h3>
+                        </div>
+                    )}
                 </div>
                 <div className="col-lg-4">
-                    <div className={`${styles.box} ${styles.orange}`}>
-                        <h3>Administration</h3>
-                    </div>
+                    {user?.isAdmin  && (
+                        <div className={`${styles.box} ${styles.orange}`}>
+                            <Link to="/admin">
+                                <h3>Administration</h3>
+                            </Link>
+                        </div>
+                    )}
                 </div>
             </div>
 

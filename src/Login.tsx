@@ -14,6 +14,7 @@ const Login: React.FC = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { login, user } = useAuth();
+
   // Initialize Firestore
   const db = getFirestore();
 
@@ -21,17 +22,12 @@ const Login: React.FC = () => {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      //login(email);
-      //let user = {} as any;
-      //user.email = email;
-      
-      debugger;
       const usersCollectionRef = collection(db, 'Users');
-      const q = query(usersCollectionRef, where("Email", "==", email));
+      const q = query(usersCollectionRef, where("email", "==", email));
       const querySnapshot = await getDocs(q);
       querySnapshot.forEach((doc) => {
         console.log(doc.data());
-        login(email, doc.data().UserName, doc.data().Role);
+        login(email, doc.data().UserName, doc.data().isAdmin);
       });      
       navigate('/');
     } catch (error) {
@@ -62,7 +58,8 @@ const Login: React.FC = () => {
               type="email"
               className="form-control"
               id="email"
-              value={email}
+              value={email.toLowerCase()}
+
               onChange={(e) => setEmail(e.target.value)}
               required
             />
