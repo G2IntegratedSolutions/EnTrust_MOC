@@ -3,19 +3,32 @@ import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/aut
 import { auth } from './firebaseConfig'; // Adjust the path as needed
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import { getFirestore } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
+
+import 'firebase/firestore';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
+
+  // Initialize Firestore
+  const db = getFirestore();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      login();
+      const usersCollectionRef = collection(db, 'Users');
+      const q = query(usersCollectionRef, where("email", "==", email));
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((doc) => {
+        console.log(doc.data());
+        login(email, doc.data().UserName, doc.data().isAdmin);
+      });      
       navigate('/');
     } catch (error) {
       const err = error as Error;
@@ -48,7 +61,8 @@ const Login: React.FC = () => {
               type="email"
               className="form-control"
               id="email"
-              value={email}
+              value={email.toLowerCase()}
+
               onChange={(e) => setEmail(e.target.value)}
               required
             />
@@ -65,7 +79,11 @@ const Login: React.FC = () => {
             />
           </div>
           <div className="mb-3 text-end">
+<<<<<<< HEAD
             <a href="#" className="text-decoration-none" onClick={() => handleForgotPassword()}>Forgot Password?</a>
+=======
+            <a href="#" className="text-decoration-none" onClick={handleForgotPassword}>Forgot password?</a>
+>>>>>>> 6629e09880aff9f7805699e9f1c696e74b9272f4
           </div>
           /* Give button blue background */
           <button type="submit" className="btn btn-primary w-100">Login</button>
@@ -74,5 +92,6 @@ const Login: React.FC = () => {
     </div>
   );
 };
+
 
 export default Login;
