@@ -79,13 +79,8 @@ const Login: React.FC = () => {
             />
           </div>
           <div className="mb-3 text-end">
-<<<<<<< HEAD
             <a href="#" className="text-decoration-none" onClick={() => handleForgotPassword()}>Forgot Password?</a>
-=======
-            <a href="#" className="text-decoration-none" onClick={handleForgotPassword}>Forgot password?</a>
->>>>>>> 6629e09880aff9f7805699e9f1c696e74b9272f4
           </div>
-          /* Give button blue background */
           <button type="submit" className="btn btn-primary w-100">Login</button>
         </form>
       </div>
