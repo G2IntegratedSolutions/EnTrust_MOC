@@ -27,7 +27,7 @@ const Login: React.FC = () => {
       const querySnapshot = await getDocs(q);
       querySnapshot.forEach((doc) => {
         console.log(doc.data());
-        login(email, doc.data().UserName, doc.data().isAdmin);
+        login(email, doc.data().UserName, doc.data().isAdmin, doc.data().organization);
       });      
       navigate('/');
     } catch (error) {
