@@ -4,12 +4,13 @@ type User = {
   email: string;
   userName: string;
   isAdmin: boolean;
+  organization: string;
 };
 
 type AuthContextType = {
   isAuthenticated: boolean;
   user: User | null;
-  login: (email: string, userName: string, isAdmin:boolean) => void;
+  login: (email: string, userName: string, isAdmin:boolean, organization: string) => void;
   logout: () => void;
 };
 
@@ -23,9 +24,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
 
-  const login = (email: string, userName: string, isAdmin: boolean) => {
+  const login = (email: string, userName: string, isAdmin: boolean, organization: string) => {
     setIsAuthenticated(true);
-    setUser({ email, userName, isAdmin });
+    setUser({ email, userName, isAdmin, organization });
   };
 
   const logout = () => {

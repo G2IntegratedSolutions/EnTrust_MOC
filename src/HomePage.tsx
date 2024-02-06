@@ -9,7 +9,6 @@ type Props = {
 
 const HomePage: React.FC<Props> = ({ message }) => {
     const { isAuthenticated, logout, user } = useAuth();
-
     return (
         <div>
             <header className="bg-light text-black py-3" >
