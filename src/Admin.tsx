@@ -1,5 +1,5 @@
 // Admin.tsx
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import React, { useState, ChangeEvent, FormEvent, ReactNode } from 'react';
 import { useContext } from 'react';
 import styles from './Admin.module.css';
 import { createUserWithEmailAndPassword, indexedDBLocalPersistence } from 'firebase/auth';
@@ -7,6 +7,8 @@ import { auth } from './firebaseConfig'; // Adjust the path as needed
 import { collection, addDoc, getDocs } from 'firebase/firestore';
 import { getFirestore, query, where } from "firebase/firestore";
 import { useAuth } from './AuthContext';
+import { List } from 'react-bootstrap/lib/Media';
+import InputMask, { Props as InputProps } from 'react-input-mask';
 
 interface User {
     email: string;
@@ -46,6 +48,7 @@ const Admin = () => {
 
     const authContext = useAuth();
     const [selectedUser, setSelectedUser] = useState(authContext.user?.email);
+    const [selectedGroup, setSelectedGroup] = useState('');
     const [usersInOrg, setUsersInOrg] = useState<User[]>([]);
     const [groupsInOrg, setGroupsInOrg] = useState<Group[]>([]);
 
@@ -124,6 +127,7 @@ const Admin = () => {
                 setShowCreateNewGroup(true);
                 break;
             case 'associateUsersAndGroups':
+                RefreshUsersAndGroups();
                 setShowAssociateUsersAndGroups(true);
                 break;
             case 'createChangeNotice':
@@ -134,6 +138,9 @@ const Admin = () => {
         }
     };
 
+    const handleAssignToGroup = async () => {
+        console.log("Assigning user to group")
+    }
 
     const handleNewGroupSubmit = async (e: FormEvent) => {
 
@@ -166,41 +173,46 @@ const Admin = () => {
             {showCreateNewUser &&
                 <div className={styles.createNewUser}>
                     <h2>Create new User</h2>
-                    <form className={styles.formContainer} onSubmit={handleNewUserSubmit}>
-                        <label>
-                            Email:
-                            <input type="email" name="email" value={user.email} onChange={handleNewUserChange} required />
-                        </label>
-                        <br />
-                        <label>
-                            Phone:
-                            <input type="phone" name="phone" value={user.phone} onChange={handleNewUserChange} required />
-                        </label>
-                        <br />
-                        <label>
-                            Make Administrator?
+                    <p>On this page, you can create a new user for the EnTrust Solutions Management of Change (Moc) application.  Every user you 
+                        create will receive an invitation to EnTrust Moc at the email you provide.  On their first visit, each user will 
+                        be required to change their default password.   </p>
+                    <form className={styles.formContainer} >
+                        <div className="form-group">
+                            <label htmlFor="email">Email:</label>
+                            <input type="email" className='form-control' name="email" value={user.email} onChange={handleNewUserChange} required />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="phone">Phone:</label>
+                            {/* <input className='form-control' type="phone" name="phone" value={user.phone} onChange={handleNewUserChange} required /> */}
+                            <InputMask mask="(999)999-9999" className='form-control' type="phone" name="phone" value={user.phone} onChange={handleNewUserChange}>
+                               
+                            </InputMask>
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="isAdmin">Make Administrator:</label>
                             <input type="checkbox" name="isAdmin" checked={user.isAdmin} onChange={handleNewUserChange} />
-                        </label>
-                        <br />
-                        <input type="submit" value="Create User" />
+
+                        </div>
+                        <button className='btn btn-primary' onClick={handleNewUserSubmit}>Create User</button>
                     </form>
                 </div>
             }
             {showCreateNewGroup &&
                 <div className={styles.createNewGroup}>
                     <h2>Create New Group</h2>
-                    <form className={styles.formContainer} onSubmit={handleNewGroupSubmit}>
-                        <label>
-                            Group Name:
-                            <input type="text" name="groupName" value={group.groupName} onChange={handleNewGroupChange} required />
-                        </label>
-                        <br />
-                        <label>
-                            Group Description
-                            <input type="text" name="groupDescription" value={group.groupDescription} onChange={handleNewGroupChange} required />
-                        </label>
-                        <br />
-                        <input type="submit" value="Create Group" />
+                    <p>On this page, you can create groups which users of EnTrust Moc will ultimately be assigned to.  When you create 
+                        Change Notifications (CNs), you will assign the CN to one or more groups.  
+                    </p>
+                    <form className={styles.formContainer} >
+                        <div className="form-group">
+                            <label htmlFor="groupName">Group Name:</label>
+                            <input type="text" className='form-control' name="groupName" value={group.groupName} onChange={handleNewGroupChange} required />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="groupDescription">Group Description:</label>
+                            <input type="text" className='form-control' name="groupDescription" value={group.groupDescription} onChange={handleNewGroupChange} required />
+                        </div>
+                        <button className={`${styles.btn} btn btn-primary`} onClick={handleNewGroupSubmit}>Create Group</button>
                     </form>
                 </div>
             }
@@ -208,31 +220,44 @@ const Admin = () => {
                 <div className={styles.associateUserAndGroups}>
                     <h2>Associate Users to Groups</h2>
 
-                    <button className='btn btn-success' onClick={() => { RefreshUsersAndGroups() }}>Refresh Users</button>
-                    <br />
-                    <label>
-                        User:
-                    </label>
-                    <select onChange={(e) => setSelectedUser(e.target.value)}>
-                        {usersInOrg.map((user, index) => (
-                            <option key={index} value={user.email}>{user.email}</option>
-                        ))}
-                    </select>
-                    <br />
-                    <label>
-                        Group:
-                    </label>
-                    <select>
-                        {groupsInOrg.map((group, index) => (
-                            <option key={index} value={group.groupName}>{group.groupName}</option>
-                        ))}
-                    </select>
-                    <p>{selectedUser} Group Membership</p>
+                    {/* <button className='btn btn-success' onClick={() => { RefreshUsersAndGroups() }}>Refresh Users</button> */}
+                    <p>On this page, you can assign users to groups.  When you create a "Change Notification" (CN), you will assign the
+                        CN to one or more groups.  Every person in the group will be emailed when the CN is created or its status changes. </p>
+                    <div className="form-group">
+                        <label htmlFor="group">Select a user in your organization</label>
+                        <select className='form-control' onChange={(e) => setSelectedUser(e.target.value)}>
+                            {usersInOrg.map((user, index) => (
+                                <option key={index} value={user.email}>{user.email}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <label> Current Group Membership</label>
+                    <div>
+                        <select className='form-control' size={5}>
+                            <option>Aardvark</option>
+                            <option>Bannana</option>
+                            <option>Chimp</option>
+                        </select>
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="group">Add a new group?</label>
+                        <select className='form-control'  onChange={(e) => setSelectedGroup(e.target.value)}>
+                            {groupsInOrg.map((group, index) => (
+                                <option key={index} value={group.groupName}>{group.groupName}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <button className={`${styles.btn} btn btn-success`} onClick={handleAssignToGroup}>Assign {selectedUser} to {selectedGroup}</button>
+                    <br></br>
+
+                    {/* <button className={`${styles.btn} btn btn-danger`} onClick={handleAssignToGroup}>Remove selected group for user</button> */}
                 </div>
             }
             {showCreateChangeNotice &&
                 <div className={styles.createChangeNotice}>
                     <h2>Create Change Notice</h2>
+                    <p>On this page, you can create a Change Notification and assign it to one or more groups in your organization. 
+                    </p>
                 </div>
             }
         </>

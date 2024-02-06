@@ -42,7 +42,8 @@ label {
 }
 
 .actionOption {
-    margin-right: 60px;
+    margin-left: 10px;
+    margin-right: 50px;
     cursor: pointer;
     justify-content: space-between;
     width: 100%;
@@ -52,4 +53,18 @@ label {
 .form-container button:hover {
     background-color: #45a049;
 }
+label {
+    font-style: bold;
+    color:#0D6EFD;
+}
+H2{
+    color: #89c339 !important;
+}
+.associateUserAndGroups, .createChangeNotice, .createNewGroup, .createNewUser {
+    margin-top:50px;
+    margin-left: 20px;
+}
 
+.btn {
+    margin-top: 10px;
+}
