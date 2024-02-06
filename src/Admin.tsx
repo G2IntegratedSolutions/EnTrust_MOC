@@ -2,10 +2,10 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
 import { useContext } from 'react';
 import styles from './Admin.module.css';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, indexedDBLocalPersistence } from 'firebase/auth';
 import { auth } from './firebaseConfig'; // Adjust the path as needed
-import { collection, addDoc } from 'firebase/firestore';
-import { getFirestore } from "firebase/firestore";
+import { collection, addDoc, getDocs } from 'firebase/firestore';
+import { getFirestore, query, where } from "firebase/firestore";
 import { useAuth } from './AuthContext';
 
 interface User {
@@ -18,29 +18,39 @@ interface User {
 interface Group {
     groupName: string;
     groupDescription: string;
-    organization:'';
+    organization: '';
 }
 interface ChangeNotice {
     mocNumber: string;
-    dateOfCreation:Date;
-    dateOfPublication:Date;
-    timeOfImplemenation:Date;
-    categoryOfMOC:string;
-    typeOfMOC:string;
-    specificTopic:string;
-    affectedGroups:string;
-    reasonForChange:string;
-    reasonForChangeDescription:string;
-    impacts:string;
-    requiredDateOfCompletion:Date;
-    openNotes:string;
-    attachments:string;
+    dateOfCreation: Date;
+    dateOfPublication: Date;
+    timeOfImplemenation: Date;
+    categoryOfMOC: string;
+    typeOfMOC: string;
+    specificTopic: string;
+    affectedGroups: string;
+    reasonForChange: string;
+    reasonForChangeDescription: string;
+    impacts: string;
+    requiredDateOfCompletion: Date;
+    openNotes: string;
+    attachments: string;
 }
 
 const Admin = () => {
+
+    const [showCreateNewUser, setShowCreateNewUser] = useState(true);
+    const [showCreateNewGroup, setShowCreateNewGroup] = useState(false);
+    const [showAssociateUsersAndGroups, setShowAssociateUsersAndGroups] = useState(false);
+    const [showCreateChangeNotice, setShowCreateChangeNotice] = useState(false);
+
     const authContext = useAuth();
+    const [selectedUser, setSelectedUser] = useState(authContext.user?.email);
+    const [usersInOrg, setUsersInOrg] = useState<User[]>([]);
+    const [groupsInOrg, setGroupsInOrg] = useState<Group[]>([]);
+
     const [user, setUser] = useState<User>({ email: '', phone: '', organization: '', groups: [], isAdmin: false });
-    const [group, setGroup] = useState<Group>({ groupName: '', groupDescription: '', organization:'' });
+    const [group, setGroup] = useState<Group>({ groupName: '', groupDescription: '', organization: '' });
 
     const handleNewUserChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;
@@ -49,7 +59,7 @@ const Admin = () => {
     }
     const handleNewGroupChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;
-        setGroup({...group, [name]: value});
+        setGroup({ ...group, [name]: value });
     }
     const handleNewUserSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -66,8 +76,9 @@ const Admin = () => {
             const newUser = {
                 email,
                 phone,
-                userName: email, // Replace with the desired username logic
+                userName: email,
                 isAdmin: isAdmin,
+                organization: authContext.user?.organization,
                 groups: groups,
             };
             const db = getFirestore();
@@ -77,6 +88,52 @@ const Admin = () => {
             console.error('Error creating user:', error);
         }
     }
+
+    const RefreshUsersAndGroups = async () => {
+        console.log("getting users and groups")
+        const db = getFirestore();
+        const usersCollection = collection(db, 'Users');
+        const qUsers = query(usersCollection, where("organization", "==", authContext.user?.organization));
+        const userSnapshot = await getDocs(qUsers).then((querySnapshot) => {
+            const users = querySnapshot.docs.map(doc => doc.data());
+            setUsersInOrg(users as User[]);
+
+        });
+        const groupsCollection = collection(db, 'Groups');
+        const qGroups = query(groupsCollection, where("organization", "==", authContext.user?.organization));
+        const groupsSnapshot = await getDocs(qGroups).then((querySnapshot) => {
+            const groups = querySnapshot.docs.map(doc => doc.data());
+            setGroupsInOrg(groups as Group[]);
+
+        });
+    }
+
+    const changeDivVis = (divName: string) => {
+
+        // Hide all spans
+        setShowCreateNewUser(false);
+        setShowCreateNewGroup(false);
+        setShowAssociateUsersAndGroups(false);
+        setShowCreateChangeNotice(false)
+        // Show the selected span
+        switch (divName) {
+            case 'createNewUser':
+                setShowCreateNewUser(true);
+                break;
+            case 'createNewGroup':
+                setShowCreateNewGroup(true);
+                break;
+            case 'associateUsersAndGroups':
+                setShowAssociateUsersAndGroups(true);
+                break;
+            case 'createChangeNotice':
+                setShowCreateChangeNotice(true);
+                break;
+            default:
+                break;
+        }
+    };
+
 
     const handleNewGroupSubmit = async (e: FormEvent) => {
 
@@ -91,7 +148,7 @@ const Admin = () => {
             const newGroup = {
                 groupName,
                 groupDescription,
-                organization : authContext.user?.organization,
+                organization: authContext.user?.organization,
             };
             const db = getFirestore();
             const docRef = await addDoc(collection(db, 'Groups'), newGroup);
@@ -102,46 +159,82 @@ const Admin = () => {
     }
     return (
         <>
-            <div>
-                <h2>Create new User</h2>
-                <form className={styles.formContainer} onSubmit={handleNewUserSubmit}>
-                    <label>
-                        Email:
-                        <input type="email" name="email" value={user.email} onChange={handleNewUserChange} required />
-                    </label>
+            <span onClick={(e) => changeDivVis("createNewUser")} className={styles.actionOption}>Create New User</span>
+            <span onClick={(e) => changeDivVis("createNewGroup")} className={styles.actionOption}>Create New Group</span>
+            <span onClick={(e) => changeDivVis("associateUsersAndGroups")} className={styles.actionOption}>Associate User to Groups</span>
+            <span onClick={(e) => changeDivVis("createChangeNotice")} className={styles.actionOption}>Create Change Notice</span>
+            {showCreateNewUser &&
+                <div className={styles.createNewUser}>
+                    <h2>Create new User</h2>
+                    <form className={styles.formContainer} onSubmit={handleNewUserSubmit}>
+                        <label>
+                            Email:
+                            <input type="email" name="email" value={user.email} onChange={handleNewUserChange} required />
+                        </label>
+                        <br />
+                        <label>
+                            Phone:
+                            <input type="phone" name="phone" value={user.phone} onChange={handleNewUserChange} required />
+                        </label>
+                        <br />
+                        <label>
+                            Make Administrator?
+                            <input type="checkbox" name="isAdmin" checked={user.isAdmin} onChange={handleNewUserChange} />
+                        </label>
+                        <br />
+                        <input type="submit" value="Create User" />
+                    </form>
+                </div>
+            }
+            {showCreateNewGroup &&
+                <div className={styles.createNewGroup}>
+                    <h2>Create New Group</h2>
+                    <form className={styles.formContainer} onSubmit={handleNewGroupSubmit}>
+                        <label>
+                            Group Name:
+                            <input type="text" name="groupName" value={group.groupName} onChange={handleNewGroupChange} required />
+                        </label>
+                        <br />
+                        <label>
+                            Group Description
+                            <input type="text" name="groupDescription" value={group.groupDescription} onChange={handleNewGroupChange} required />
+                        </label>
+                        <br />
+                        <input type="submit" value="Create Group" />
+                    </form>
+                </div>
+            }
+            {showAssociateUsersAndGroups &&
+                <div className={styles.associateUserAndGroups}>
+                    <h2>Associate Users to Groups</h2>
+
+                    <button className='btn btn-success' onClick={() => { RefreshUsersAndGroups() }}>Refresh Users</button>
                     <br />
                     <label>
-                        Phone:
-                        <input type="phone" name="phone" value={user.phone} onChange={handleNewUserChange} required />
+                        User:
                     </label>
+                    <select onChange={(e) => setSelectedUser(e.target.value)}>
+                        {usersInOrg.map((user, index) => (
+                            <option key={index} value={user.email}>{user.email}</option>
+                        ))}
+                    </select>
                     <br />
                     <label>
-                        Make Administrator?
-                        <input type="checkbox" name="isAdmin" checked={user.isAdmin} onChange={handleNewUserChange} />
+                        Group:
                     </label>
-                    <br />
-                    <input type="submit" value="Create User" />
-                </form>
-            </div>
-            <div>
-                <h2>Create New Group</h2>
-                <form className={styles.formContainer} onSubmit={handleNewGroupSubmit}>
-                    <label>
-                        Group Name:
-                        <input type="text" name="groupName" value={group.groupName} onChange={handleNewGroupChange} required />
-                    </label>
-                    <br />
-                    <label>
-                        Group Description
-                        <input type="text" name="groupDescription" value={group.groupDescription} onChange={handleNewGroupChange} required />
-                    </label>
-                    <br />
-                    <input type="submit" value="Create Group" />
-                </form>
-            </div>
-            <div>
-            <h2>Associate Users to Groups</h2>
-            </div>
+                    <select>
+                        {groupsInOrg.map((group, index) => (
+                            <option key={index} value={group.groupName}>{group.groupName}</option>
+                        ))}
+                    </select>
+                    <p>{selectedUser} Group Membership</p>
+                </div>
+            }
+            {showCreateChangeNotice &&
+                <div className={styles.createChangeNotice}>
+                    <h2>Create Change Notice</h2>
+                </div>
+            }
         </>
 
     );
