@@ -68,3 +68,10 @@ H2{
 .btn {
     margin-top: 10px;
 }
+.deleteSelected {
+    color:red;
+    float: right;
+    margin-Right: 20px;
+    text-decoration: underline;
+    cursor: pointer;
+}
