@@ -3,6 +3,7 @@
 input {
     margin-left: 10px !important;
 }
+
 .form-container {
     display: flex;
     flex-direction: column;
@@ -17,13 +18,16 @@ input {
     margin-bottom: 10px;
     font-weight: bold;
 }
+
 label {
     margin-bottom: 10px;
 }
+
 .form-container input {
     width: 100%;
     padding: 10px;
-    margin-bottom: 10px; /* Updated to 10px */
+    margin-bottom: 10px;
+    /* Updated to 10px */
     border: 1px solid #ccc;
     border-radius: 5px;
 }
@@ -37,6 +41,30 @@ label {
     cursor: pointer;
 }
 
+.actionOption {
+    margin-left: 10px;
+    margin-right: 50px;
+    cursor: pointer;
+    justify-content: space-between;
+    width: 100%;
+    text-decoration: underline;
+}
+
 .form-container button:hover {
     background-color: #45a049;
+}
+label {
+    font-style: bold;
+    color:#0D6EFD;
+}
+H2{
+    color: #89c339 !important;
+}
+.associateUserAndGroups, .createChangeNotice, .createNewGroup, .createNewUser {
+    margin-top:50px;
+    margin-left: 20px;
+}
+
+.btn {
+    margin-top: 10px;
 }
