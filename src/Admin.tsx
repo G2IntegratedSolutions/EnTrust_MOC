@@ -69,10 +69,10 @@ const Admin = () => {
     //When the groups for the selected user changes, we need to reset the selected group membership index
     useEffect(() => {
         console.log("Groups for selected user changed")
-        if(selectedGroupMembershipRef.current){
+        if (selectedGroupMembershipRef.current) {
             console.log("Ref is current");
         }
-        else{
+        else {
             console.log("NOT current");
         }
         if (groupsForSelectedUser.length > 0) {
@@ -90,12 +90,12 @@ const Admin = () => {
 
     //When the groups for the selected user changes, we need to reset the selected group membership index
     // useEffect(() => {
-        
+
     //     if(selectedGroupMembershipRef.current){
     //         console.log("Setting selected index to: " + selectedGroupMembershipIndex ?? 0);
     //         (selectedGroupMembershipRef.current as any).selectedIndex = selectedGroupMembershipIndex ?? 0;
     //     }
-        
+
     // }, [selectedGroupMembershipIndex])
 
 
@@ -119,7 +119,7 @@ const Admin = () => {
                 }
             });
         }
-    }, [selectedUserEmail]); 
+    }, [selectedUserEmail]);
 
     const handleNewUserSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -164,7 +164,7 @@ const Admin = () => {
             const groups = querySnapshot.docs.map(doc => doc.data());
             setGroupsInOrg(groups as Group[]);
         });
-        if(selectedGroupMembershipRef.current){
+        if (selectedGroupMembershipRef.current) {
             console.log("Ref is current");
             //debugger;
             console.log("Setting selected index to: " + selectedGroupMembershipIndex ?? 0);
@@ -201,6 +201,32 @@ const Admin = () => {
 
     const handleAssignToGroup = async () => {
         console.log("Assigning user to group")
+        let groupToAdd = selectedGroup
+        if (groupToAdd === '') {
+            groupToAdd = groupsInOrg[0].groupName;
+        }
+        let currentUser = selectedUserEmail;
+        let currentOrg = authContext.user?.organization;
+
+        // Open the users collection in Firebase
+        const db = getFirestore();
+        const usersCollection = collection(db, 'Users');
+        // Query the users collection for the selected user with an organization matching currentOrg
+        const qUsers = query(usersCollection, where("organization", "==", currentOrg), where("email", "==", currentUser));
+        getDocs(qUsers).then((querySnapshot) => {
+            querySnapshot.forEach(async (doc) => {
+                // Get the user's groups
+                let groups = doc.data().groups;
+                // Remove the selected group from the user's groups
+                if(groups.includes(groupToAdd) == false){
+                    let newGroups =  [...groups, groupToAdd];
+                    // Update the user's groups in the database
+                    const userRef = doc.ref;
+                    await updateDoc(userRef, { groups: newGroups });
+                    setGroupsForSelectedUser(newGroups);
+                }
+            });
+        });
     }
 
 
@@ -249,7 +275,7 @@ const Admin = () => {
                 // Remove the selected group from the user's groups
                 let newGroups = groups.filter((group: string) => group !== groupToDelete);
                 // Update the user's groups in the database
-                const userRef = doc.ref;    
+                const userRef = doc.ref;
                 await updateDoc(userRef, { groups: newGroups });
                 setGroupsForSelectedUser(newGroups);
             });
@@ -313,7 +339,7 @@ const Admin = () => {
                     <h2>Associate Users to Groups</h2>
 
                     {/* <button className='btn btn-success' onClick={() => { RefreshUsersAndGroups() }}>Refresh Users</button> */}
-                    <p>On this page, you can assign users to groups.  When you create a "Change Notification" (CN), you will assign the
+                    <p>On this page, you can assign groups to users.  When you create a "Change Notification" (CN), you will assign the
                         CN to one or more groups.  Every person in the group will be emailed when the CN is created or its status changes. </p>
                     <div className="form-group">
                         <label htmlFor="group">Select a user in your organization</label>
@@ -340,14 +366,14 @@ const Admin = () => {
                         </select>
                     </div>
                     <div className="form-group">
-                        <label htmlFor="group">Add a new group for this user:</label>
+                        <label htmlFor="group">Select a new group to associate to the selected user:</label>
                         <select className='form-control' onChange={(e) => setSelectedGroup(e.target.value)}>
                             {groupsInOrg.map((group, index) => (
                                 <option key={index} value={group.groupName}>{group.groupName}</option>
                             ))}
                         </select>
                     </div>
-                    <button className={`${styles.btn} btn btn-success`} onClick={handleAssignToGroup}>Assign {selectedUserEmail} to {selectedGroup}</button>
+                    <button className={`${styles.btn} btn btn-success`} onClick={handleAssignToGroup}>Assign {selectedUserEmail} to selected group</button>
                     <br></br>
 
                     {/* <button className={`${styles.btn} btn btn-danger`} onClick={handleAssignToGroup}>Remove selected group for user</button> */}
@@ -360,6 +386,7 @@ const Admin = () => {
                     </p>
                 </div>
             }
+            <br></br>
         </>
 
     );
