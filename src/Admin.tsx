@@ -9,19 +9,13 @@ import { getFirestore, query, where } from "firebase/firestore";
 import { useAuth } from './AuthContext';
 import { List } from 'react-bootstrap/lib/Media';
 import InputMask, { Props as InputProps } from 'react-input-mask';
+import CreateChangeNotification from './CreateChangeNotification';
+import { Group, User } from './Interfaces'
+import { generateRandomString } from './common';
+import { toast } from 'react-toastify';
 
-interface User {
-    email: string;
-    phone: string;
-    organization: string;
-    groups: string[];
-    isAdmin: boolean;
-}
-interface Group {
-    groupName: string;
-    groupDescription: string;
-    organization: '';
-}
+
+
 interface ChangeNotice {
     mocNumber: string;
     dateOfCreation: Date;
@@ -41,6 +35,8 @@ interface ChangeNotice {
 
 const Admin = () => {
     const selectedGroupMembershipRef = useRef(null)
+    const groupNameRef = useRef<HTMLInputElement>(null);
+    const groupDescriptionRef = useRef<HTMLInputElement>(null);
     const [showCreateNewUser, setShowCreateNewUser] = useState(true);
     const [showCreateNewGroup, setShowCreateNewGroup] = useState(false);
     const [showAssociateUsersAndGroups, setShowAssociateUsersAndGroups] = useState(false);
@@ -53,18 +49,38 @@ const Admin = () => {
     const [usersInOrg, setUsersInOrg] = useState<User[]>([]);
     const [groupsInOrg, setGroupsInOrg] = useState<Group[]>([]);
     const [selectedGroupMembersip, setSelectedGroupMembership] = useState<string>('');
-    const [user, setUser] = useState<User>({ email: '', phone: '', organization: '', groups: [], isAdmin: false });
-    const [group, setGroup] = useState<Group>({ groupName: '', groupDescription: '', organization: '' });
+    // user and setUser are for new users
+    const [user, setUser] = useState<User>({ id: '', email: '', phone: '', organization: '', groups: [], isAdmin: false });
+    const [existingUserIndex, setExistingUserIndex] = useState<number>(0);
+    const [group, setGroup] = useState<Group>({ id: '', name: '', description: '', organization: '' });
 
     const handleNewUserChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;
         const newValue = type === 'checkbox' ? checked : value;
         setUser({ ...user, [name]: newValue });
     }
-    const handleNewGroupChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const { name, value, type, checked } = e.target;
-        setGroup({ ...group, [name]: value });
+
+    const handleExistingUserChange = (e: ChangeEvent<HTMLInputElement>) => {
+        setExistingUserIndex((e.target as unknown as HTMLSelectElement).selectedIndex);
     }
+
+    const handleNewGroupChange = (e: ChangeEvent<HTMLInputElement>) => {
+        // const { name, value, type, checked } = e.target;
+        // setGroup({ ...group, [name]: value });
+    }
+
+    useEffect(() => {
+        const db = getFirestore();
+        const usersCollection = collection(db, 'Users');
+        const qUsers = query(usersCollection, where("organization", "==", authContext.user?.organization));
+        const userSnapshot = getDocs(qUsers).then((querySnapshot) => {
+            const users = querySnapshot.docs.map(doc => doc.data());
+            setUsersInOrg(users as User[]);
+            if (users.length > 0) {
+                setExistingUserIndex(0);
+            }
+        });
+    }, []);
 
     //When the groups for the selected user changes, we need to reset the selected group membership index
     useEffect(() => {
@@ -86,17 +102,6 @@ const Admin = () => {
             setSelectedGroupMembershipIndex(undefined);
         }
     }, [groupsForSelectedUser])
-
-
-    //When the groups for the selected user changes, we need to reset the selected group membership index
-    // useEffect(() => {
-
-    //     if(selectedGroupMembershipRef.current){
-    //         console.log("Setting selected index to: " + selectedGroupMembershipIndex ?? 0);
-    //         (selectedGroupMembershipRef.current as any).selectedIndex = selectedGroupMembershipIndex ?? 0;
-    //     }
-
-    // }, [selectedGroupMembershipIndex])
 
 
     useEffect(() => {
@@ -134,6 +139,7 @@ const Admin = () => {
 
             // Create a new user in Cloud Firestore
             const newUser = {
+                id: generateRandomString(8),
                 email,
                 phone,
                 userName: email,
@@ -141,12 +147,23 @@ const Admin = () => {
                 organization: authContext.user?.organization,
                 groups: groups,
             };
+            debugger
             const db = getFirestore();
             const docRef = await addDoc(collection(db, 'Users'), newUser);
             console.log('New user added with ID: ', docRef.id);
+            toast.success('User successfully added!');
         } catch (error) {
             console.error('Error creating user:', error);
+            toast.error('Error creating user: ' + error);
         }
+    }
+
+    const handlExistingUserChange = async (e: ChangeEvent<HTMLSelectElement>) => {
+        setExistingUserIndex(e.target.selectedIndex);
+    };
+
+    const handleExistingUserUpdateSubmit = async (e: FormEvent) => {
+        debugger;
     }
 
     const RefreshUsersAndGroups = async () => {
@@ -203,7 +220,7 @@ const Admin = () => {
         console.log("Assigning user to group")
         let groupToAdd = selectedGroup
         if (groupToAdd === '') {
-            groupToAdd = groupsInOrg[0].groupName;
+            groupToAdd = groupsInOrg[0].name;
         }
         let currentUser = selectedUserEmail;
         let currentOrg = authContext.user?.organization;
@@ -218,8 +235,8 @@ const Admin = () => {
                 // Get the user's groups
                 let groups = doc.data().groups;
                 // Remove the selected group from the user's groups
-                if(groups.includes(groupToAdd) == false){
-                    let newGroups =  [...groups, groupToAdd];
+                if (groups.includes(groupToAdd) == false) {
+                    let newGroups = [...groups, groupToAdd];
                     // Update the user's groups in the database
                     const userRef = doc.ref;
                     await updateDoc(userRef, { groups: newGroups });
@@ -238,12 +255,14 @@ const Admin = () => {
         try {
             // Create a new user in Firebase Auth based on the email address provided and a default password
 
-            const { groupName, groupDescription, organization } = group;
-
+            //const { name, description, organization } = group;
+            // Create a random string of 8 characters with the letters A-Z, and a-z
+            const randomString = generateRandomString(8);
             // Create a new group in Cloud Firestore
             const newGroup = {
-                groupName,
-                groupDescription,
+                id: randomString,
+                name: groupNameRef.current?.value,
+                description: groupDescriptionRef.current?.value,
                 organization: authContext.user?.organization,
             };
             const db = getFirestore();
@@ -258,6 +277,13 @@ const Admin = () => {
         setSelectedUserEmail(e.target.value);
 
     }
+    const setExistingUserAdmin = ((e: ChangeEvent<HTMLInputElement>) => {
+        //debugger;
+        let newUsersInOrg = [...usersInOrg];
+        newUsersInOrg[existingUserIndex].isAdmin = e.target.checked;
+        setUsersInOrg(newUsersInOrg);
+    } );
+
     function deletedSelectedGroup() {
         let groupToDelete = (selectedGroupMembershipRef.current as HTMLSelectElement | null)?.value;
         let currentUser = selectedUserEmail;
@@ -284,16 +310,17 @@ const Admin = () => {
     }
     return (
         <>
-            <span onClick={(e) => changeDivVis("createNewUser")} className={styles.actionOption}>Create New User</span>
-            <span onClick={(e) => changeDivVis("createNewGroup")} className={styles.actionOption}>Create New Group</span>
-            <span onClick={(e) => changeDivVis("associateUsersAndGroups")} className={styles.actionOption}>Associate User to Groups</span>
-            <span onClick={(e) => changeDivVis("createChangeNotice")} className={styles.actionOption}>Create Change Notice</span>
+            <span onClick={(e) => changeDivVis("createNewUser")} className={styles.actionOption}>Manage Users</span>
+            <span onClick={(e) => changeDivVis("createNewGroup")} className={styles.actionOption}>Manage Groups</span>
+            <span onClick={(e) => changeDivVis("associateUsersAndGroups")} className={styles.actionOption}>Assign Users to Groups</span>
+            <span onClick={(e) => changeDivVis("createChangeNotice")} className={styles.actionOption}>Manage Change Notifications (CNs)</span>
             {showCreateNewUser &&
                 <div className={styles.createNewUser}>
-                    <h2>Create new User</h2>
-                    <p>On this page, you can create a new user for the EnTrust Solutions Management of Change (Moc) application.  Every user you
-                        create will receive an invitation to EnTrust Moc at the email you provide.  On their first visit, each user will
+                    <h2>Manage Users</h2>
+                    <p>On this page, you can create a new user for the EnTrust Solutions Management of Change (Moc) application or if necessary update or remove existing users.  Every user you
+                        create will receive an invitation to EnTrust MoC at the email you provide.  On their first visit, each user will
                         be required to change their default password.   </p>
+                    <h4>Create New User</h4>
                     <form className={styles.formContainer} >
                         <div className="form-group">
                             <label htmlFor="email">Email:</label>
@@ -313,30 +340,63 @@ const Admin = () => {
                         </div>
                         <button className='btn btn-primary' onClick={handleNewUserSubmit}>Create User</button>
                     </form>
+                    <hr></hr>
+                    <h4>Update/Remove Existing User</h4><span onClick={deletedSelectedGroup} className={styles.deleteSelected}>Remove this User</span>
+                    <div>Existing User's Email:</div>
+                    <select className='form-control' onChange={handlExistingUserChange}>
+                        {usersInOrg.map((userInOrg, index) => (
+                            <option key={index} value={userInOrg.email}>{userInOrg.email}</option>
+                        ))}
+                    </select>
+                    <div>
+                        <br></br>
+                        <div>Update this User</div>
+                        <div>
+                            <label>Email :</label>
+                            <input className={`${styles.narrow} form-control`} type="text" placeholder=
+                                {usersInOrg && existingUserIndex >= 0 && existingUserIndex < usersInOrg.length ? usersInOrg[existingUserIndex].email : ''}
+                            />
+                        </div>
+                        <div>
+                            <label>Phone:</label>
+                            <InputMask mask="(999)999-9999" className={`${styles.narrow} form-control`} type="phone" name="phone"
+                                placeholder=
+                                {usersInOrg && existingUserIndex >= 0 && existingUserIndex < usersInOrg.length ? usersInOrg[existingUserIndex].phone : ''}
+                            >
+                            </InputMask>
+                        </div>
+                        <div><label>Administrator:</label><input type="checkbox" name="isAdmin" onChange={setExistingUserAdmin}
+                            checked={usersInOrg && existingUserIndex >= 0 && existingUserIndex < usersInOrg.length ? usersInOrg[existingUserIndex].isAdmin : false}
+                        /></div>
+                        <button className='btn btn-primary' onClick={handleExistingUserUpdateSubmit}>Update User</button>
+                    </div>
                 </div>
             }
             {showCreateNewGroup &&
                 <div className={styles.createNewGroup}>
-                    <h2>Create New Group</h2>
+                    <h2>Manage Groups</h2>
                     <p>On this page, you can create groups which users of EnTrust Moc will ultimately be assigned to.  When you create
-                        Change Notifications (CNs), you will assign the CN to one or more groups.
+                        Change Notifications (CNs), you will assign the CN to one or more groups. If required, you can also update or remove groups.
                     </p>
+                    <h4>Create New Group</h4>
                     <form className={styles.formContainer} >
                         <div className="form-group">
                             <label htmlFor="groupName">Group Name:</label>
-                            <input type="text" className='form-control' name="groupName" value={group.groupName} onChange={handleNewGroupChange} required />
+                            <input ref={groupNameRef} type="text" className='form-control' name="groupName" required />
                         </div>
                         <div className="form-group">
                             <label htmlFor="groupDescription">Group Description:</label>
-                            <input type="text" className='form-control' name="groupDescription" value={group.groupDescription} onChange={handleNewGroupChange} required />
+                            <input ref={groupDescriptionRef} type="text" className='form-control' name="groupDescription" required />
                         </div>
                         <button className={`${styles.btn} btn btn-primary`} onClick={handleNewGroupSubmit}>Create Group</button>
                     </form>
+                    <hr></hr>
+                    <h4>Update/Remove Existing Group</h4>
                 </div>
             }
             {showAssociateUsersAndGroups &&
                 <div className={styles.associateUserAndGroups}>
-                    <h2>Associate Users to Groups</h2>
+                    <h2>Assign Users to Groups</h2>
 
                     {/* <button className='btn btn-success' onClick={() => { RefreshUsersAndGroups() }}>Refresh Users</button> */}
                     <p>On this page, you can assign groups to users.  When you create a "Change Notification" (CN), you will assign the
@@ -369,7 +429,7 @@ const Admin = () => {
                         <label htmlFor="group">Select a new group to associate to the selected user:</label>
                         <select className='form-control' onChange={(e) => setSelectedGroup(e.target.value)}>
                             {groupsInOrg.map((group, index) => (
-                                <option key={index} value={group.groupName}>{group.groupName}</option>
+                                <option key={index} value={group.name}>{group.name}</option>
                             ))}
                         </select>
                     </div>
@@ -381,9 +441,8 @@ const Admin = () => {
             }
             {showCreateChangeNotice &&
                 <div className={styles.createChangeNotice}>
-                    <h2>Create Change Notice</h2>
-                    <p>On this page, you can create a Change Notification and assign it to one or more groups in your organization.
-                    </p>
+
+                    <CreateChangeNotification></CreateChangeNotification>
                 </div>
             }
             <br></br>
