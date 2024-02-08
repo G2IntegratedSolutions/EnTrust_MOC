@@ -8,27 +8,33 @@ import { toast } from 'react-toastify';
 import { generateRandomString } from './common';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from './firebaseConfig'; // Adjust the path as needed
+import { is } from '@babel/types';
 
 interface ManageUsersProps {
     usersInOrg: User[];
+    setUsersInOrg: React.Dispatch<React.SetStateAction<User[]>>
     refreshUsersInOrg: () => Promise<void>;
 }
 
-const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, refreshUsersInOrg }) => {
+const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, refreshUsersInOrg }) => {
     //
     // user and setUser are for new users
     const [user, setUser] = useState<User>({ id: '', email: '', phone: '', organization: '', groups: [], isAdmin: false });
     const [existingUserIndex, setExistingUserIndex] = useState<number>(0);
+    const [existingUserPhone, setExistingUserPhone] = useState<string>('');
+    const [existingUserEmail, setExistingUserEmail] = useState<string>('');
+    const [existingUserIsAdmin, setExistingUserIsAdmin] = useState<boolean>(false);
+    const [isPhoneValid, setIsPhoneValid] = useState(false);
+    const [deleteLinkVisible, setDeleteLinkVisible] = useState(false);
     const authContext = useAuth();
 
-
-
-    const setExistingUserAdmin = ((e: ChangeEvent<HTMLInputElement>) => {
-        //debugger;
-        let newUsersInOrg = [...usersInOrg];
-        newUsersInOrg[existingUserIndex].isAdmin = e.target.checked;
-        //setUsersInOrg(newUsersInOrg);
-    });
+    useEffect(() => {
+        if(usersInOrg.length > 0){
+            setExistingUserIsAdmin(usersInOrg[existingUserIndex].isAdmin);
+            setDeleteLinkVisible(usersInOrg[existingUserIndex].email !== authContext.user?.email);
+        }
+       
+    }, [usersInOrg]);
 
 
     const handleNewUserChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -37,21 +43,16 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, refreshUsersInOrg
         setUser({ ...user, [name]: newValue });
     }
 
-    const handleExistingUserChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setExistingUserIndex((e.target as unknown as HTMLSelectElement).selectedIndex);
-    }
 
     const handleNewUserSubmit = async (e: FormEvent) => {
+        // This creates a new user in Firebase Auth and Cloud Firestore
         e.preventDefault();
-
         try {
             // Create a new user in Firebase Auth based on the email address provided and a default password
             const { email, phone, organization, groups, isAdmin } = user;
             const password = 'defaultPassword'; // Replace with your default password
             await createUserWithEmailAndPassword(auth, email, password);
-
             console.log('User created successfully');
-
             // Create a new user in Cloud Firestore
             const newUser = {
                 id: generateRandomString(8),
@@ -74,15 +75,42 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, refreshUsersInOrg
     }
 
     const handlExistingUserChange = async (e: ChangeEvent<HTMLSelectElement>) => {
-        setExistingUserIndex(e.target.selectedIndex);
+        const newIndex = (e.target as unknown as HTMLSelectElement).selectedIndex
+        setExistingUserIndex(newIndex);
+        setExistingUserIsAdmin(usersInOrg[newIndex].isAdmin);
+        setDeleteLinkVisible(usersInOrg[newIndex].email !== authContext.user?.email);
     };
 
     const handleExistingUserUpdateSubmit = async (e: FormEvent) => {
-        debugger;
+        let currentUser = usersInOrg[existingUserIndex];
+        let newPhone = existingUserPhone !== "" ? existingUserPhone : currentUser.phone;
+        let newEmail = existingUserEmail !== "" ? existingUserEmail : currentUser.email;
+        let newIsAdmin = currentUser.isAdmin;
+        const idOfUserToUpdate = currentUser.id;
+        const db = getFirestore();
+        // find the user in the Users collection with the id of the user to update using a query
+        const usersCollectionRef = collection(db, 'Users');
+        const q = query(usersCollectionRef, where("id", "==", idOfUserToUpdate));
     }
 
     const deleteExistingUser = async () => {
-        debugger
+        let currentUser = usersInOrg[existingUserIndex];
+        const idOfUserToDelete = currentUser.id;
+        const emailOfUserToDelete = currentUser.email;
+        const db = getFirestore();
+        // delete the user in the database with the id of the user to delete using a query
+        const usersCollectionRef = collection(db, 'Users');
+        const q = query(usersCollectionRef, where("id", "==", idOfUserToDelete));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+            deleteDoc(doc.ref);
+        });
+        // In addition to deleting the user from the database, we also need to delete the user from Firebase Auth
+        // This process requires the use of the firebase server SDK, which is not available in the browser
+        // NOT IMPLEMENTED YET
+        setExistingUserIndex(0);
+        refreshUsersInOrg()
+
     }
 
     return (
@@ -112,7 +140,8 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, refreshUsersInOrg
                 <button className='btn btn-primary' onClick={handleNewUserSubmit}>Create User</button>
             </form>
             <hr></hr>
-            <h4>Update/Remove Existing User</h4><span onClick={deleteExistingUser} className={styles.deleteSelected}>Remove this User</span>
+            <h4>Update/Remove Existing User</h4>
+            {deleteLinkVisible && <span onClick={deleteExistingUser} className={styles.deleteSelected}>Remove this User</span>}
             <div>Existing User's Email:</div>
             <select className='form-control' onChange={handlExistingUserChange}>
                 {usersInOrg.map((userInOrg, index) => (
@@ -122,27 +151,48 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, refreshUsersInOrg
             <div>
                 <br></br>
                 <div>Update this User</div>
-                <div>
-                    <label>Email :</label>
-                    <input className={`${styles.narrow} form-control`} type="text" placeholder=
-                        {usersInOrg && existingUserIndex >= 0 && existingUserIndex < usersInOrg.length ? usersInOrg[existingUserIndex].email : ''}
-                    />
-                </div>
-                <div>
-                    <label>Phone:</label>
-                    <InputMask mask="(999)999-9999" className={`${styles.narrow} form-control`} type="phone" name="phone"
-                        placeholder=
-                        {usersInOrg && existingUserIndex >= 0 && existingUserIndex < usersInOrg.length ? usersInOrg[existingUserIndex].phone : ''}
-                    >
-                    </InputMask>
-                </div>
-                <div><label>Administrator:</label><input type="checkbox" name="isAdmin" onChange={setExistingUserAdmin}
-                    checked={usersInOrg && existingUserIndex >= 0 && existingUserIndex < usersInOrg.length ? usersInOrg[existingUserIndex].isAdmin : false}
-                /></div>
-                <button className='btn btn-primary' onClick={handleExistingUserUpdateSubmit}>Update User</button>
+                <form onSubmit={handleExistingUserUpdateSubmit} >
+                    {/* <div>
+                        <label>Email :</label>
+                        <input className={`${styles.narrow} form-control`} type="email"
+                            placeholder=
+                            {usersInOrg && existingUserIndex >= 0 && existingUserIndex < usersInOrg.length ? usersInOrg[existingUserIndex].email : ''}
+                            value={existingUserEmail} onChange={(e) => setExistingUserEmail(e.target.value)}
+                        />
+                    </div> */}
+                    <div>
+                        <label>Phone:</label>
+                        <InputMask mask="(999)999-9999" className={`${styles.narrow} form-control`} type="phone" name="phone"
+                            placeholder=
+                            {usersInOrg && existingUserIndex >= 0 && existingUserIndex < usersInOrg.length ? usersInOrg[existingUserIndex].phone : ''}
+                            value={existingUserPhone}
+                            onChange={(e) => {
+                                setExistingUserPhone(e.target.value);
+                                const phoneRegex = /^\(\d{3}\)\d{3}-\d{4}$/;
+                                let isValidPhone = phoneRegex.test(e.target.value)
+                                setIsPhoneValid(isValidPhone);
+                                if(isValidPhone){
+                                    
+                                    console.log("Phone number valid and set to " + e.target.value)
+                                }
+                                
+                            }}
+                        >
+                        </InputMask>
+                    </div>
+                    <div><label>Administrator:</label><input type="checkbox" name="isAdmin"
+                        onChange={(e) => setExistingUserIsAdmin(e.target.checked)}
+                        checked={existingUserIsAdmin}
+                    /></div>
+                    <button className='btn btn-primary' disabled={!isPhoneValid}  type="submit" >Update User</button>
+                </form>
+
+
+
             </div>
         </div>
     );
 };
 
 export default ManageUsers;
+// checked={usersInOrg && existingUserIndex >= 0 && existingUserIndex < usersInOrg.length ? usersInOrg[existingUserIndex].isAdmin : false}

@@ -51,21 +51,9 @@ const Admin = () => {
     const [group, setGroup] = useState<Group>({ id: '', name: '', description: '', organization: '' });
 
     useEffect(() => {
-        refreshUsersInOrg();
+        RefreshUsersAndGroups();
     }, []);
 
-    const refreshUsersInOrg = async () => {
-        const db = getFirestore();
-        const usersCollection = collection(db, 'Users');
-        const qUsers = query(usersCollection, where("organization", "==", authContext.user?.organization));
-        const userSnapshot = getDocs(qUsers).then((querySnapshot) => {
-            const users = querySnapshot.docs.map(doc => doc.data());
-            setUsersInOrg(users as User[]);
-            // if (users.length > 0) {
-            //     setExistingUserIndex(0);
-            // }
-        });
-    }
 
     const handleNewGroupChange = (e: ChangeEvent<HTMLInputElement>) => {
         // const { name, value, type, checked } = e.target;
@@ -263,7 +251,7 @@ const Admin = () => {
             <span onClick={(e) => changeDivVis("associateUsersAndGroups")} className={styles.actionOption}>Assign Users to Groups</span>
             <span onClick={(e) => changeDivVis("createChangeNotice")} className={styles.actionOption}>Manage Change Notifications (CNs)</span>
             {showCreateNewUser &&
-                <ManageUsers  usersInOrg={usersInOrg} refreshUsersInOrg={refreshUsersInOrg}></ManageUsers>
+                <ManageUsers  usersInOrg={usersInOrg} setUsersInOrg={setUsersInOrg} refreshUsersInOrg={RefreshUsersAndGroups}></ManageUsers>
             }
             {showCreateNewGroup &&
                 <div className={styles.createNewGroup}>
