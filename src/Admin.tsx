@@ -1,4 +1,3 @@
-// Admin.tsx
 import React, { useState, ChangeEvent, FormEvent, ReactNode, useEffect, useRef } from 'react';
 import { useContext } from 'react';
 import styles from './Admin.module.css';
@@ -14,24 +13,6 @@ import { generateRandomString } from './common';
 import { toast } from 'react-toastify';
 import ManageUsers from './ManageUsers';
 import ManageGroups from './ManageGroups';
-
-
-interface ChangeNotice {
-    mocNumber: string;
-    dateOfCreation: Date;
-    dateOfPublication: Date;
-    timeOfImplemenation: Date;
-    categoryOfMOC: string;
-    typeOfMOC: string;
-    specificTopic: string;
-    affectedGroups: string;
-    reasonForChange: string;
-    reasonForChangeDescription: string;
-    impacts: string;
-    requiredDateOfCompletion: Date;
-    openNotes: string;
-    attachments: string;
-}
 
 const Admin = () => {
     const selectedGroupMembershipRef = useRef(null)
@@ -54,14 +35,6 @@ const Admin = () => {
     useEffect(() => {
         RefreshUsersAndGroups();
     }, []);
-
-
-    const handleNewGroupChange = (e: ChangeEvent<HTMLInputElement>) => {
-        // const { name, value, type, checked } = e.target;
-        // setGroup({ ...group, [name]: value });
-    }
-
-
 
     //When the groups for the selected user changes, we need to reset the selected group membership index
     useEffect(() => {
@@ -88,7 +61,6 @@ const Admin = () => {
     useEffect(() => {
         // This code will be executed whenever selectedUserEmail changes
         console.log(selectedUserEmail);
-
         let selectedUser_Email = selectedUserEmail;
         let org = authContext.user?.organization;
         if (selectedUser_Email && org) {
@@ -106,7 +78,6 @@ const Admin = () => {
             });
         }
     }, [selectedUserEmail]);
-
 
 
     const RefreshUsersAndGroups = async () => {
@@ -133,7 +104,6 @@ const Admin = () => {
     }
 
     const changeDivVis = (divName: string) => {
-
         // Hide all spans
         setShowCreateNewUser(false);
         setShowCreateNewGroup(false);
@@ -189,17 +159,9 @@ const Admin = () => {
         });
     }
 
-
-
     const handleNewGroupSubmit = async (e: FormEvent) => {
-
         e.preventDefault();
-
         try {
-            // Create a new user in Firebase Auth based on the email address provided and a default password
-
-            //const { name, description, organization } = group;
-            // Create a random string of 8 characters with the letters A-Z, and a-z
             const randomString = generateRandomString(8);
             // Create a new group in Cloud Firestore
             const newGroup = {
@@ -310,7 +272,6 @@ const Admin = () => {
             }
             <br></br>
         </>
-
     );
 }
 export default Admin;

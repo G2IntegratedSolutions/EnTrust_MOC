@@ -7,8 +7,7 @@ import { useAuth } from './AuthContext';
 import { toast } from 'react-toastify';
 import { generateRandomString } from './common';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from './firebaseConfig'; // Adjust the path as needed
-import { is } from '@babel/types';
+import { auth } from './firebaseConfig';
 
 interface ManageUsersProps {
     usersInOrg: User[];
@@ -17,8 +16,6 @@ interface ManageUsersProps {
 }
 
 const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, refreshUsersInOrg }) => {
-    //
-    // user and setUser are for new users
     const [user, setUser] = useState<User>({ id: '', email: '', phone: '', organization: '', groups: [], isAdmin: false });
     const [existingUserIndex, setExistingUserIndex] = useState<number>(0);
     const [existingUserPhone, setExistingUserPhone] = useState<string>('');
@@ -36,13 +33,11 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
        
     }, [usersInOrg]);
 
-
     const handleNewUserChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;
         const newValue = type === 'checkbox' ? checked : value;
         setUser({ ...user, [name]: newValue });
     }
-
 
     const handleNewUserSubmit = async (e: FormEvent) => {
         // This creates a new user in Firebase Auth and Cloud Firestore
@@ -50,7 +45,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
         try {
             // Create a new user in Firebase Auth based on the email address provided and a default password
             const { email, phone, organization, groups, isAdmin } = user;
-            const password = 'defaultPassword'; // Replace with your default password
+            const password = 'defaultPassword'; 
             await createUserWithEmailAndPassword(auth, email, password);
             console.log('User created successfully');
             // Create a new user in Cloud Firestore
@@ -85,8 +80,9 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
         e.preventDefault();
         let currentUser = usersInOrg[existingUserIndex];
         let newPhone = existingUserPhone !== "" ? existingUserPhone : currentUser.phone;
-        let newEmail = existingUserEmail !== "" ? existingUserEmail : currentUser.email;
-        let newIsAdmin = currentUser.isAdmin;
+        // You can't update email - you need to delete and recreate the user
+        //let newEmail = existingUserEmail !== "" ? existingUserEmail : currentUser.email;
+        let newIsAdmin = existingUserIsAdmin;
         const idOfUserToUpdate = currentUser.id;
         const db = getFirestore();
         // find the user in the Users collection with the id of the user to update using a query
@@ -94,7 +90,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
         const q = query(usersCollectionRef, where("id", "==", idOfUserToUpdate));
         const querySnapshot = await getDocs(q);
         querySnapshot.forEach((doc) => {
-            let newDoc = {email: newEmail, phone: newPhone, isAdmin: newIsAdmin};
+            let newDoc = {phone: newPhone, isAdmin: newIsAdmin};
             updateDoc(doc.ref, newDoc).then(() => {
                 refreshUsersInOrg();
                 toast.success('Users successfully updated!');
@@ -104,7 +100,6 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
             });
         });
     }
-
 
     const deleteExistingUser = async () => {
         let currentUser = usersInOrg[existingUserIndex];
@@ -123,7 +118,6 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
         // NOT IMPLEMENTED YET
         setExistingUserIndex(0);
         refreshUsersInOrg()
-
     }
 
     return (
@@ -142,7 +136,6 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                     <label htmlFor="phone">Phone:</label>
                     {/* <input className='form-control' type="phone" name="phone" value={user.phone} onChange={handleNewUserChange} required /> */}
                     <InputMask mask="(999)999-9999" className='form-control' type="phone" name="phone" value={user.phone} onChange={handleNewUserChange}>
-
                     </InputMask>
                 </div>
                 <div className="form-group">
@@ -165,14 +158,6 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                 <br></br>
                 <div>Update this User</div>
                 <form onSubmit={handleExistingUserUpdateSubmit} >
-                    {/* <div>
-                        <label>Email :</label>
-                        <input className={`${styles.narrow} form-control`} type="email"
-                            placeholder=
-                            {usersInOrg && existingUserIndex >= 0 && existingUserIndex < usersInOrg.length ? usersInOrg[existingUserIndex].email : ''}
-                            value={existingUserEmail} onChange={(e) => setExistingUserEmail(e.target.value)}
-                        />
-                    </div> */}
                     <div>
                         <label>Phone:</label>
                         <InputMask mask="(999)999-9999" className={`${styles.narrow} form-control`} type="phone" name="phone"
@@ -181,7 +166,8 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                             value={existingUserPhone}
                             onChange={(e) => {
                                 setExistingUserPhone(e.target.value);
-                                const phoneRegex = /^\(\d{3}\)\d{3}-\d{4}$/;
+                                //const phoneRegex = /^\(\d{3}\)\d{3}-\d{4}$/;
+                                const phoneRegex = /^(\(\d{3}\)\d{3}-\d{4}|)$/; // This regex allows for an empty string
                                 let isValidPhone = phoneRegex.test(e.target.value)
                                 setIsPhoneValid(isValidPhone);
                                 if(isValidPhone){
@@ -193,19 +179,15 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                         >
                         </InputMask>
                     </div>
-                    <div><label>Administrator:</label><input type="checkbox" name="isAdmin"
+                    <div><label>Make Administrator?:</label><input type="checkbox" name="isAdmin"
                         onChange={(e) => setExistingUserIsAdmin(e.target.checked)}
                         checked={existingUserIsAdmin}
                     /></div>
                     <button className='btn btn-primary' disabled={!isPhoneValid}  type="submit" >Update User</button>
                 </form>
-
-
-
             </div>
         </div>
     );
 };
 
 export default ManageUsers;
-// checked={usersInOrg && existingUserIndex >= 0 && existingUserIndex < usersInOrg.length ? usersInOrg[existingUserIndex].isAdmin : false}
