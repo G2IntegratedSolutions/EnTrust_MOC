@@ -4,6 +4,7 @@
 
 .mocManager{
     font-size: 32px;
+    white-space: nowrap;
     font-weight: bold;
     color:var(--bs-primary);
     z-index: 1 ;

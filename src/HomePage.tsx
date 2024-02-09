@@ -12,7 +12,7 @@ const HomePage: React.FC<Props> = ({ message }) => {
     const { isAuthenticated, logout, user } = useAuth();
     return (
         <div>
-            <header className={"header bg-light text-black py-3"} >
+            {/* <header className={"header bg-light text-black py-3"} >
                 <div className="container">
                     <div className="row align-items-center">
                         <div className="col text-left">
@@ -23,7 +23,7 @@ const HomePage: React.FC<Props> = ({ message }) => {
                             <div className={`${styles.mocManager} ${styles.outlinedText} text-left`}>MoC MANAGER</div>
                             <div className={styles.manageYourChange + " text-center"}>Advancing Change</div>
                         </div>
-                        <div className="col-auto ms-auto">
+                        <div style={{zIndex: 3}} className="col-auto ms-auto">
                             <Link to="/login">
                                 <div className={styles.login}>
                                     {isAuthenticated ? (
@@ -39,7 +39,7 @@ const HomePage: React.FC<Props> = ({ message }) => {
                         </div>
                     </div>
                 </div>
-            </header>
+            </header> */}
             <div className="row">
                 <div className="col-lg-4">
                     {isAuthenticated ? (
