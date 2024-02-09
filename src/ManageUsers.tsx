@@ -82,6 +82,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
     };
 
     const handleExistingUserUpdateSubmit = async (e: FormEvent) => {
+        e.preventDefault();
         let currentUser = usersInOrg[existingUserIndex];
         let newPhone = existingUserPhone !== "" ? existingUserPhone : currentUser.phone;
         let newEmail = existingUserEmail !== "" ? existingUserEmail : currentUser.email;
@@ -91,7 +92,19 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
         // find the user in the Users collection with the id of the user to update using a query
         const usersCollectionRef = collection(db, 'Users');
         const q = query(usersCollectionRef, where("id", "==", idOfUserToUpdate));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+            let newDoc = {email: newEmail, phone: newPhone, isAdmin: newIsAdmin};
+            updateDoc(doc.ref, newDoc).then(() => {
+                refreshUsersInOrg();
+                toast.success('Users successfully updated!');
+            }).catch((error) => {
+                console.error('Error updating users:', error);
+                toast.error('Error updating users: ' + error);
+            });
+        });
     }
+
 
     const deleteExistingUser = async () => {
         let currentUser = usersInOrg[existingUserIndex];

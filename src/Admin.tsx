@@ -13,6 +13,7 @@ import { Group, User } from './Interfaces'
 import { generateRandomString } from './common';
 import { toast } from 'react-toastify';
 import ManageUsers from './ManageUsers';
+import ManageGroups from './ManageGroups';
 
 
 interface ChangeNotice {
@@ -254,26 +255,7 @@ const Admin = () => {
                 <ManageUsers  usersInOrg={usersInOrg} setUsersInOrg={setUsersInOrg} refreshUsersInOrg={RefreshUsersAndGroups}></ManageUsers>
             }
             {showCreateNewGroup &&
-                <div className={styles.createNewGroup}>
-                    <h2>Manage Groups</h2>
-                    <p>On this page, you can create groups which users of EnTrust Moc will ultimately be assigned to.  When you create
-                        Change Notifications (CNs), you will assign the CN to one or more groups. If required, you can also update or remove groups.
-                    </p>
-                    <h4>Create New Group</h4>
-                    <form className={styles.formContainer} >
-                        <div className="form-group">
-                            <label htmlFor="groupName">Group Name:</label>
-                            <input ref={groupNameRef} type="text" className='form-control' name="groupName" required />
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="groupDescription">Group Description:</label>
-                            <input ref={groupDescriptionRef} type="text" className='form-control' name="groupDescription" required />
-                        </div>
-                        <button className={`${styles.btn} btn btn-primary`} onClick={handleNewGroupSubmit}>Create Group</button>
-                    </form>
-                    <hr></hr>
-                    <h4>Update/Remove Existing Group</h4>
-                </div>
+                <ManageGroups groupsInOrg={groupsInOrg} setGroupsInOrg={setGroupsInOrg}  refreshUsersAndGroupsInOrg={RefreshUsersAndGroups}></ManageGroups>
             }
             {showAssociateUsersAndGroups &&
                 <div className={styles.associateUserAndGroups}>
@@ -331,5 +313,4 @@ const Admin = () => {
 
     );
 }
-
 export default Admin;
