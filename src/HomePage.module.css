@@ -3,16 +3,26 @@
 }
 
 .mocManager{
-    font-size: 16px;
+    font-size: 32px;
     font-weight: bold;
-    color:blue;
+    color:var(--bs-primary);
+    z-index: 1 ;
+    position: absolute;
+    top: 0px;
+}
+.login{
+    color:white;
+    font-weight:600
 }
 .manageYourChange{
-    font-size: 10px;
-    font-weight: lighter;  
+    font-size: 14px;
+    font-weight: bold;  
     font-style: italic; 
-    color:gray;
+    color: var(--bs-success);
+    position: absolute;
+    top: 40px;
 }
+
 .box {
     height: 200px;
     display: flex;
@@ -22,17 +32,31 @@
     margin-bottom: 20px;
     margin:10px;
 }
+header {
+    background: linear-gradient(90deg, #fff 30%, #83b637);
+    border-bottom: 1px solid black;
+}
 a {
     text-decoration: none !important;
     color: inherit !important;
     cursor: pointer !important;
 }
-
+.outlinedText {
+    color: #fff; /* Text color */
+    text-shadow: 
+        -1px -1px 0 #000,  
+         1px -1px 0 #000,
+        -1px  1px 0 #000,
+         1px  1px 0 #000; /* Outline effect */
+}
 .green {
-    background-color: green;
+    background-color: #83b637;
     color: white;
 }
-
+.bg-success {
+    background-color: "pink";
+    color: white;
+}
 .blue {
     background-color: blue;
     color:white;

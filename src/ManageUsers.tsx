@@ -62,6 +62,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
             const docRef = await addDoc(collection(db, 'Users'), newUser);
             console.log('New user added with ID: ', docRef.id);
             refreshUsersInOrg();
+            setExistingUserPhone('');
             toast.success('User successfully added!');
         } catch (error) {
             console.error('Error creating user:', error);
@@ -180,7 +181,14 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                         </InputMask>
                     </div>
                     <div><label>Make Administrator?:</label><input type="checkbox" name="isAdmin"
-                        onChange={(e) => setExistingUserIsAdmin(e.target.checked)}
+                        onChange={(e) =>
+                            {
+                                if (usersInOrg[existingUserIndex].email == authContext.user?.email) {
+                                    toast.error('You cannot change your own admin status');
+                                    return;
+                                }
+                                setExistingUserIsAdmin(e.target.checked);
+                            }}
                         checked={existingUserIsAdmin}
                     /></div>
                     <button className='btn btn-primary' disabled={!isPhoneValid}  type="submit" >Update User</button>

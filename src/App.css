@@ -1,10 +1,11 @@
+:root {
 
+}
 .App {
   text-align: center;
 }
 .login2 {
   font-size: 22px;
-  color:purple;
 }
 .App-logo {
   height: 40vmin;
@@ -17,6 +18,17 @@
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
   }
+}
+.header {
+  height: 75px !important;
+}
+.arrow {
+  position:absolute;
+  width: 74vw;
+  left:25vw;
+  top:0px;
+  height: 75px !important;
+  opacity: .8;
 }
 
 .App-header {
@@ -47,3 +59,9 @@
   }
 }
 
+label {
+  margin-bottom: 2px !important;
+}
+.form-control {
+  margin-bottom: 5px !important;
+}

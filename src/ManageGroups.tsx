@@ -112,7 +112,7 @@ const ManageGroups: React.FC<ManageGroupsProps> = ({ groupsInOrg, setGroupsInOrg
             <hr></hr>
             <h4>Update/Remove Existing Group</h4>
             <span onClick={deleteExistingGroup} className={styles.deleteSelected}>Remove this Group</span>
-            <div>Existing User's Email:</div>
+            <label>Group Name:</label>
             <select className='form-control' onChange={handlExistingGroupChange}>
                 {groupsInOrg.map((groupInOrg, index) => (
                     <option key={index} value={groupInOrg.name}>{groupInOrg.name}</option>
