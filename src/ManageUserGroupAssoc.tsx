@@ -185,7 +185,7 @@ const ManagerUserGroupAssoc: React.FC<ManageUserGroupAssocProps> = ({ usersInOrg
                     ))}
                 </select>
             </div>
-            <button className={`${styles.btn} btn btn-success`} onClick={handleAssignToGroup}>Assign {selectedUserEmail} to selected group</button>
+            <button className={`${styles.btn} btn btn-primary`} onClick={handleAssignToGroup}>Assign {selectedUserEmail} to selected group</button>
             <br></br>
 
             {/* <button className={`${styles.btn} btn btn-danger`} onClick={handleAssignToGroup}>Remove selected group for user</button> */}

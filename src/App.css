@@ -1,6 +1,4 @@
-:root {
 
-}
 .App {
   text-align: center;
 }
@@ -24,10 +22,10 @@
 }
 .arrow {
   position:absolute;
-  width: 74vw;
+  width: 73vw;
   left:25vw;
   top:0px;
-  height: 75px !important;
+  height: 70px !important;
   opacity: .8;
 }
 
@@ -61,7 +59,10 @@
 
 label {
   margin-bottom: 2px !important;
+  margin-left: 0px;
 }
 .form-control {
   margin-bottom: 5px !important;
+  margin-left:0px !important;
+  width: 99% !important;
 }

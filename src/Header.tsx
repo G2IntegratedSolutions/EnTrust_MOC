@@ -1,5 +1,5 @@
 import banner from './assets/banner.png';
-import arrow from './assets/arrow.png';
+import arrow from './assets/arrow2.png';
 import styles from './HomePage.module.css';
 import { Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';

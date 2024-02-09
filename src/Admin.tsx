@@ -92,11 +92,9 @@ const Admin = () => {
             }
             {showAssociateUsersAndGroups &&
                 <ManagerUserGroupAssoc usersInOrg={usersInOrg} groupsInOrg={groupsInOrg} setUsersInOrg={setUsersInOrg} refreshUsersInOrg={RefreshUsersAndGroups}></ManagerUserGroupAssoc>
-
             }
             {showCreateChangeNotice &&
                 <div className={styles.createChangeNotice}>
-
                     <CreateChangeNotification></CreateChangeNotification>
                 </div>
             }
