@@ -4,7 +4,6 @@
 }
 .login2 {
   font-size: 22px;
-  color:purple;
 }
 .App-logo {
   height: 40vmin;
@@ -17,6 +16,17 @@
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
   }
+}
+.header {
+  height: 75px !important;
+}
+.arrow {
+  position:absolute;
+  width: 73vw;
+  left:25vw;
+  top:0px;
+  height: 70px !important;
+  opacity: .8;
 }
 
 .App-header {
@@ -34,6 +44,10 @@
   color: #61dafb;
 }
 
+.btn-primary {
+  margin-top:10px !important;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
@@ -43,3 +57,12 @@
   }
 }
 
+label {
+  margin-bottom: 2px !important;
+  margin-left: 0px;
+}
+.form-control {
+  margin-bottom: 5px !important;
+  margin-left:0px !important;
+  width: 99% !important;
+}

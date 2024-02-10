@@ -75,3 +75,8 @@ H2{
     text-decoration: underline;
     cursor: pointer;
 }
+.narrow {
+    width:50% !important;
+    display: inline-block !important;
+}
+
