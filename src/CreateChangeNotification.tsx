@@ -6,10 +6,12 @@ import { useAuth } from './AuthContext';
 import { collection, addDoc, getDocs, updateDoc } from 'firebase/firestore';
 import { Group, User } from './Interfaces'
 import { generateRandomString } from './common';
+import { toast } from 'react-toastify';
 
 const CreateChangeNotification: React.FC = () => {
 
     const [groupsForOrganization, setGroupsForOrganization] = useState<Group[]>([]); // Update the type of initial state
+    const [selectedGroups, setSelectedGroups] = useState<Group[]>([]);
     const [selectedChangeCategory, setSelectedChangeCategory] = useState('');
     const timeStamp = Date.now();
     const date = new Date(timeStamp);
@@ -33,7 +35,7 @@ const CreateChangeNotification: React.FC = () => {
     const authContext = useAuth();
     const [mocNumber, setMocNumber] = useState(generateRandomString(8));
     const changeCategories = ['Safety', 'Quality', 'Production', 'Facilities', 'IT', 'HR', 'Finance', 'Other'];
-    
+
     useEffect(() => {
         let org = authContext.user?.organization;
         const db = getFirestore();
@@ -46,9 +48,41 @@ const CreateChangeNotification: React.FC = () => {
     }, []);
 
     const onCreateChangeNotification = async (e: FormEvent) => {
+        e.preventDefault();
         debugger;
+        try {
+            const cn = {
+                mocNumber,
+                dateOfCreation,
+                dateOfPublication,
+                timeOfImplementation,
+                category: selectedChangeCategory,
+                type: changeType,
+                topic: changeTopic,
+                groups:selectedGroups,
+                shortReasonForChange,
+                descriptionOfChange,
+                impacts,
+                requiredDateOfCompletion,
+                notes,
+                attachments
+            };
+            const db = getFirestore();
+            const docRef = await addDoc(collection(db, 'ChangeNotifications'), cn);
+            console.log('New Change Notification added with ID: ', docRef.id);
+            toast.success('Change Notification successfully added!');
+        } catch (error) {
+            console.error('Error creating Change Notification:', error);
+            toast.error('Error creating Change Notification: ' + error);
+        }
     }
-
+    const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>, group: Group) => {
+        if (e.target.checked) {
+            setSelectedGroups(prevGroups => [...prevGroups, group]);
+        } else {
+            setSelectedGroups(prevGroups => prevGroups.filter(g => g.id !== group.id));
+        }
+    };
     return (
         <div>
             <h2>Create Change Notice</h2>
@@ -127,14 +161,19 @@ const CreateChangeNotification: React.FC = () => {
                         {groupsForOrganization.map((group) => {
                             return (
                                 <div className="form-check" key={group.id}>
-                                    <input className="form-check-input" type="checkbox" value={group.name} id={group.id} />
+                                    <input
+                                        className="form-check-input"
+                                        type="checkbox"
+                                        value={group.name}
+                                        id={group.id}
+                                        onChange={(e) => handleCheckboxChange(e, group)}
+                                    />
                                     <label style={{ marginLeft: '4px' }} className="form-check-label" htmlFor={group.id}>
                                         {group.name}
                                     </label>
                                 </div>
                             );
                         })}
-
                     </div>
                 </div>
                 <div className="mb-3">
@@ -143,7 +182,7 @@ const CreateChangeNotification: React.FC = () => {
                         type="text"
                         className="form-control"
                         onChange={(e) => setShortReasonForChange(e.target.value)}
-                        id="shortReasonForChange" />  
+                        id="shortReasonForChange" />
                 </div>
                 <div className="mb-3">
                     <label htmlFor="descriptionOfChange" className="form-label">Description Of Change</label>
