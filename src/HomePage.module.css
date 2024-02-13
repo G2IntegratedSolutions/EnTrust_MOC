@@ -3,12 +3,12 @@
 }
 
 .mocManager{
-    font-size: 32px;
+    font-size: clamp(22px, 3vw, 44px);
     white-space: nowrap;
     font-weight: bold;
     color:var(--bs-primary);
     z-index: 1 ;
-    position: absolute;
+    line-height: min(20px, 3vw);
     top: 0px;
 }
 .login{
@@ -20,8 +20,8 @@
     font-weight: bold;  
     font-style: italic; 
     color: var(--bs-success);
-    position: absolute;
     top: 40px;
+    margin-top:10px;
 }
 
 .box {
