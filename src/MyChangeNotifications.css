@@ -1,0 +1,18 @@
+.scrollableDiv {
+    display: flex;
+    overflow-x: auto;
+    width: 90vw;
+}
+
+.column {
+    min-width: 100px;
+    border: 1px solid #000;
+    padding: 10px;
+}
+.cnContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50vh;
+    margin: 0;
+}

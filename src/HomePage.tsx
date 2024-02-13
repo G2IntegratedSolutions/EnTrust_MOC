@@ -44,7 +44,9 @@ const HomePage: React.FC<Props> = ({ message }) => {
                 <div className="col-lg-4">
                     {isAuthenticated ? (
                         <div className={`${styles.box} ${styles.green}`}>
-                            <h3>Change Notifications</h3>
+                            <Link to="/myChangeNotifications">
+                                <h3>My Change Notifications</h3>
+                            </Link>
                         </div>
                     ) : (<div></div>)}
                 </div>
