@@ -1,6 +1,6 @@
 .scrollableDiv {
     display: flex;
-    overflow-x: auto;
+    overflow-x: scroll !important;
     width: 90vw;
 }
 
@@ -15,4 +15,26 @@
     align-items: center;
     height: 50vh;
     margin: 0;
+}
+.tableContainer {
+    overflow-x: auto;
+    width: 98vw;
+    margin-left:1vw;
+}
+
+.column {
+    min-width: 200px;
+}
+.th.columnHeader {
+    background-color: var(--ent-green) !important;
+    color:white;
+}
+.tableContainer {
+    max-height: 300px;
+}
+.selectedRow {
+    background-color: yellow;
+}
+.table {
+    --bs-table-bg: transparent;
 }
