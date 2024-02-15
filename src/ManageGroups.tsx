@@ -99,11 +99,11 @@ const ManageGroups: React.FC<ManageGroupsProps> = ({ groupsInOrg, setGroupsInOrg
             <h4>Create New Group</h4>
             <form className={styles.formContainer} >
                 <div className="form-group">
-                    <label htmlFor="groupName">Name:</label>
+                    <label className='form-label' htmlFor="groupName">Name:</label>
                     <input type="text" className='form-control' name="name" value={group.name} onChange={handleNewGroupChange} required />
                 </div>
                 <div className="form-group">
-                    <label htmlFor="description">Description:</label>
+                    <label className='form-label' htmlFor="description">Description:</label>
                     <input type="text" className='form-control' name="description" value={group.description} onChange={handleNewGroupChange} required />
                 </div>
                 <div><button className='btn btn-primary' onClick={handleNewGroupSubmit}>Create Group</button></div>
@@ -123,7 +123,7 @@ const ManageGroups: React.FC<ManageGroupsProps> = ({ groupsInOrg, setGroupsInOrg
                 <div>Update this Group</div>
                 <form  >
                     <div>
-                        <label>Group Name:</label>
+                        <label className='form-label'>Group Name:</label>
                         <input className={`${styles.narrow} form-control`} type="text" name="groupName"
                             placeholder=
                             {groupsInOrg && existingGroupIndex >= 0 && existingGroupIndex < groupsInOrg.length ? groupsInOrg[existingGroupIndex].name : ''}
@@ -136,7 +136,7 @@ const ManageGroups: React.FC<ManageGroupsProps> = ({ groupsInOrg, setGroupsInOrg
                         </input>
                     </div>
                     <div>
-                        <label>Group Description:</label>
+                        <label className='form-label'>Group Description:</label>
                         <input className={`${styles.narrow} form-control`} type="text" name="groupDescription"
                             placeholder=
                             {groupsInOrg && existingGroupIndex >= 0 && existingGroupIndex < groupsInOrg.length ? groupsInOrg[existingGroupIndex].description : ''}

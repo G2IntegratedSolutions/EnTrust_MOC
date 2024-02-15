@@ -22,7 +22,7 @@ const ManagerUserGroupAssoc: React.FC<ManageUserGroupAssocProps> = ({ usersInOrg
     const groupDescriptionRef = useRef<HTMLInputElement>(null);
     const authContext = useAuth();
     const [selectedGroupMembershipIndex, setSelectedGroupMembershipIndex] = useState<number | undefined>(0);
-    const [groupsForSelectedUser, setGroupsForSelectedUser] = useState<string[]>(['A', 'B']); // [ 'group1', 'group2'
+    const [groupsForSelectedUser, setGroupsForSelectedUser] = useState<Group[]>([]); // [ 'group1', 'group2'
     const [selectedUserEmail, setSelectedUserEmail] = useState(authContext.user?.email);
     const [selectedGroup, setSelectedGroup] = useState('');
     const [selectedGroupMembersip, setSelectedGroupMembership] = useState<string>('');
@@ -43,7 +43,7 @@ const ManagerUserGroupAssoc: React.FC<ManageUserGroupAssocProps> = ({ usersInOrg
             const userSnapshot = getDocs(qUsers).then((querySnapshot) => {
                 const selectedUserInOrg = querySnapshot.docs.map(doc => doc.data());
                 if (selectedUserInOrg.length > 0) {
-                    setGroupsForSelectedUser(selectedUserInOrg[0].groups as string[]);
+                    setGroupsForSelectedUser(selectedUserInOrg[0].groups);
                 }
                 else {
                     setGroupsForSelectedUser([]);
@@ -172,8 +172,8 @@ const ManagerUserGroupAssoc: React.FC<ManageUserGroupAssocProps> = ({ usersInOrg
                 }
                 }
                 >
-                    {groupsForSelectedUser.map((groupName, index) => (
-                        <option key={index} value={groupName}>{groupName}</option>
+                    {groupsForSelectedUser.map((group, index) => (
+                        <option key={index} value={group.id}>{group.name}</option>
                     ))}
                 </select>
             </div>

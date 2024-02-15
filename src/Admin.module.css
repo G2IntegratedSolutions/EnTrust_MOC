@@ -51,25 +51,36 @@ label {
 }
 
 .form-container button:hover {
-    background-color: #45a049;
+    background-color:var(--ent-green) !important;
 }
 label {
     font-style: bold;
-    color:#0D6EFD;
+    color: var(--ent-blue) !important;
 }
 H2{
-    color: #89c339 !important;
+    color: var(--ent-green) !important;
 }
 .associateUserAndGroups, .createChangeNotice, .createNewGroup, .createNewUser {
     margin-top:50px;
     margin-left: 20px;
 }
-
+.iconContainer {
+    display: inline-block;
+    margin-right: 60px !important;
+    text-align: center;
+}
+.scrollableContainer {
+    overflow-x: scroll;
+    width: 90vw;
+    white-space: nowrap;
+    margin-top: 10px;
+    margin-left:10px;
+}
 .btn {
     margin-top: 10px;
 }
 .deleteSelected {
-    color:red;
+    color:var(--ent-orange) !important;
     float: right;
     margin-Right: 20px;
     text-decoration: underline;

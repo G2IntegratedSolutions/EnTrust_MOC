@@ -115,7 +115,9 @@ const CreateChangeNotification: React.FC = () => {
                 impacts,
                 requiredDateOfCompletion,
                 notes,
-                attachments
+                attachments,
+                groupIds: selectedGroups.map(g => g.id),
+                organization: authContext.user?.organization
             };
             const db = getFirestore();
             const docRef = await addDoc(collection(db, 'ChangeNotifications'), cn);

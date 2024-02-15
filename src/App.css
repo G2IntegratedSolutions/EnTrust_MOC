@@ -1,6 +1,7 @@
 :root {
   --ent-green: #7db233;
-  --primary-color: #007bff;
+  --ent-blue: #005D83;
+  --ent-orange: #C24D00;
   --secondary-color: #6c757d;
   --success-color: #28a745;
   --danger-color: #dc3545;
@@ -66,7 +67,13 @@
     transform: rotate(360deg);
   }
 }
-
+.btn-primary {
+  background-color: var(--ent-blue) !important; /* New color */
+  border-color:var(--ent-blue) !important; /* Adjust if needed */
+}
+.form-label {
+  color: var(--ent-blue) !important;
+}
 label {
   margin-bottom: 2px !important;
   margin-left: 0px;

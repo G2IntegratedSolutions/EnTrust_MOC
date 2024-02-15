@@ -32,9 +32,8 @@
 .tableContainer {
     max-height: 300px;
 }
-.selectedRow {
-    background-color: yellow;
-}
+
 .table {
     --bs-table-bg: transparent;
+    --bs-table-color: unset;
 }
