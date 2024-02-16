@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './MyChangeNotifications.css';
+import './App.css';
 import { useAuth } from './AuthContext';
 import { getFirestore, query, where, collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import {ChangeNotification } from './Interfaces';

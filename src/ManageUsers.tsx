@@ -122,7 +122,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
     }
 
     return (
-        <div className={styles.createNewUser}>
+        <div className={`${styles.createNewUser} mocPage` }>
             <h2>Manage Users</h2>
             <p>On this page, you can create a new user for the EnTrust Solutions Management of Change (Moc) application or if necessary update or remove existing users.  Every user you
                 create will receive an invitation to EnTrust MoC at the email you provide.  On their first visit, each user will

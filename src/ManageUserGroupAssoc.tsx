@@ -150,7 +150,7 @@ const ManagerUserGroupAssoc: React.FC<ManageUserGroupAssocProps> = ({ usersInOrg
     }
 
     return (
-        <div className={styles.associateUserAndGroups}>
+        <div className={`${styles.associateUsersAndGroups} mocPage` }>
 
             <h2>Assign Users to Groups</h2>
 
