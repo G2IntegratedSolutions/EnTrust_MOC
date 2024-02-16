@@ -15,7 +15,7 @@ import ManageUsers from './ManageUsers';
 import ManageGroups from './ManageGroups';
 import ManagerUserGroupAssoc from './ManageUserGroupAssoc';
 import { useNavigate } from 'react-router-dom';
-
+import './App.css';
 const Admin = () => {
     const navigate = useNavigate();
     const [showCreateNewUser, setShowCreateNewUser] = useState(true);
@@ -82,7 +82,7 @@ const Admin = () => {
 
     return (
         <>
-            <div className={styles.scrollableContainer}>
+            <div className={`${styles.scrollableContainer} `} >
                 <div className={styles.iconContainer} onClick={(e) =>  navigate('/') }  ><i className={`material-icons ${styles.mocicon}`}>home</i><div>Home</div></div>
                 <div className={styles.iconContainer} onClick={(e) => changeDivVis("createNewUser")} ><i className={`material-icons ${styles.mocicon}`}>person</i><div>Users</div></div>
                 <div className={styles.iconContainer} onClick={(e) => changeDivVis("createNewGroup")}><i className={`material-icons ${styles.mocicon}`}>groups</i><div>Groups</div></div>

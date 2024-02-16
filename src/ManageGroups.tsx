@@ -104,7 +104,7 @@ const ManageGroups: React.FC<ManageGroupsProps> = ({ groupsInOrg, setGroupsInOrg
     }
 
     return (
-        <div className={styles.createNewUser}>
+        <div className={`${styles.createNewUser} mocPage` }>
             <h2>Manage Groups</h2>
             <p>On this page, you can create a new groups for the EnTrust Solutions Management of Change (Moc) application or if necessary update or remove existing groups.  </p>
             <h4>Create New Group</h4>
