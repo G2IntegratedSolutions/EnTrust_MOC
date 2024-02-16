@@ -1,0 +1,39 @@
+.scrollableDiv {
+    display: flex;
+    overflow-x: scroll !important;
+    width: 90vw;
+}
+
+.column {
+    min-width: 100px;
+    border: 1px solid #000;
+    padding: 10px;
+}
+.cnContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50vh;
+    margin: 0;
+}
+.tableContainer {
+    overflow-x: auto;
+    width: calc(100% - 40px);
+
+}
+
+.column {
+    min-width: 200px;
+}
+.th.columnHeader {
+    background-color: var(--ent-green) !important;
+    color:white;
+}
+.tableContainer {
+    max-height: 300px;
+}
+
+.table {
+    --bs-table-bg: transparent;
+    --bs-table-color: unset;
+}

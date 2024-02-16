@@ -1,9 +1,6 @@
-.test {
-    color: blue;
-}
 
 .mocManager{
-    font-size: clamp(22px, 3vw, 44px);
+    font-size: clamp(28px, 3vw, 56px);
     white-space: nowrap;
     font-weight: bold;
     color:var(--bs-primary);
@@ -51,7 +48,7 @@ a {
          1px  1px 0 #000; /* Outline effect */
 }
 .green {
-    background-color: #83b637;
+    background-color: var(--ent-green) !important;
     color: white;
 }
 .bg-success {
@@ -59,10 +56,11 @@ a {
     color: white;
 }
 .blue {
-    background-color: blue;
+    background-color: var(--ent-blue) !important;
     color:white;
 }
 
 .orange {
-    background-color: orange;
+    background-color: #5c6670;
+    color:white
 }

@@ -130,17 +130,17 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
             <h4>Create New User</h4>
             <form className={styles.formContainer} >
                 <div className="form-group">
-                    <label htmlFor="email">Email:</label>
+                    <label className='form-label' htmlFor="email">Email:</label>
                     <input type="email" className='form-control' name="email" value={user.email} onChange={handleNewUserChange} required />
                 </div>
                 <div className="form-group">
-                    <label htmlFor="phone">Phone:</label>
+                    <label className='form-label' htmlFor="phone">Phone:</label>
                     {/* <input className='form-control' type="phone" name="phone" value={user.phone} onChange={handleNewUserChange} required /> */}
                     <InputMask mask="(999)999-9999" className='form-control' type="phone" name="phone" value={user.phone} onChange={handleNewUserChange}>
                     </InputMask>
                 </div>
-                <div className="form-group">
-                    <label htmlFor="isAdmin">Make Administrator:</label>
+                <div className="form-group" style={{visibility: 'hidden'}}>
+                    <label className='form-label' htmlFor="isAdmin">Make Administrator:</label>
                     <input type="checkbox" name="isAdmin" checked={user.isAdmin} onChange={handleNewUserChange} />
 
                 </div>
@@ -149,7 +149,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
             <hr></hr>
             <h4>Update/Remove Existing User</h4>
             {deleteLinkVisible && <span onClick={deleteExistingUser} className={styles.deleteSelected}>Remove this User</span>}
-            <div>Existing User's Email:</div>
+            <div className='form-label'>Existing User's Email:</div>
             <select className='form-control' onChange={handlExistingUserChange}>
                 {usersInOrg.map((userInOrg, index) => (
                     <option key={index} value={userInOrg.email}>{userInOrg.email}</option>
@@ -157,11 +157,11 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
             </select>
             <div>
                 <br></br>
-                <div>Update this User</div>
+                {/* <div>Update this User</div> */}
                 <form onSubmit={handleExistingUserUpdateSubmit} >
                     <div>
-                        <label>Phone:</label>
-                        <InputMask mask="(999)999-9999" className={`${styles.narrow} form-control`} type="phone" name="phone"
+                        <label className='form-label'>Phone:</label>
+                        <InputMask mask="(999)999-9999" className={`form-control`} type="phone" name="phone"
                             placeholder=
                             {usersInOrg && existingUserIndex >= 0 && existingUserIndex < usersInOrg.length ? usersInOrg[existingUserIndex].phone : ''}
                             value={existingUserPhone}
@@ -180,7 +180,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                         >
                         </InputMask>
                     </div>
-                    <div><label>Make Administrator?:</label><input type="checkbox" name="isAdmin"
+                    <div style={{visibility: 'hidden'}}><label>Make Administrator?:</label><input type="checkbox" name="isAdmin"
                         onChange={(e) =>
                             {
                                 if (usersInOrg[existingUserIndex].email == authContext.user?.email) {

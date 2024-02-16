@@ -9,7 +9,7 @@ import { AuthProvider } from './AuthContext';
 import Admin from './Admin';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
-
+import MyChangeNotifications  from './MyChangeNotifications';
 function App() {
   return (
     <>
@@ -21,6 +21,7 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/myChangeNotifications" element={<MyChangeNotifications />} />
             <Route path="/" element={<HomePage message='test' />} />
           </Routes>
         </Router>

@@ -14,8 +14,10 @@ import { toast } from 'react-toastify';
 import ManageUsers from './ManageUsers';
 import ManageGroups from './ManageGroups';
 import ManagerUserGroupAssoc from './ManageUserGroupAssoc';
+import { useNavigate } from 'react-router-dom';
 
 const Admin = () => {
+    const navigate = useNavigate();
     const [showCreateNewUser, setShowCreateNewUser] = useState(true);
     const [showCreateNewGroup, setShowCreateNewGroup] = useState(false);
     const [showAssociateUsersAndGroups, setShowAssociateUsersAndGroups] = useState(false);
@@ -80,10 +82,15 @@ const Admin = () => {
 
     return (
         <>
-            <span onClick={(e) => changeDivVis("createNewUser")} className={styles.actionOption}>Manage Users</span>
-            <span onClick={(e) => changeDivVis("createNewGroup")} className={styles.actionOption}>Manage Groups</span>
-            <span onClick={(e) => changeDivVis("associateUsersAndGroups")} className={styles.actionOption}>Assign Users to Groups</span>
-            <span onClick={(e) => changeDivVis("createChangeNotice")} className={styles.actionOption}>Manage Change Notifications (CNs)</span>
+            <div className={styles.scrollableContainer}>
+                <div className={styles.iconContainer} onClick={(e) =>  navigate('/') }  ><i className={`material-icons ${styles.mocicon}`}>home</i><div>Home</div></div>
+                <div className={styles.iconContainer} onClick={(e) => changeDivVis("createNewUser")} ><i className={`material-icons ${styles.mocicon}`}>person</i><div>Users</div></div>
+                <div className={styles.iconContainer} onClick={(e) => changeDivVis("createNewGroup")}><i className={`material-icons ${styles.mocicon}`}>groups</i><div>Groups</div></div>
+                <div className={styles.iconContainer } onClick={(e) => changeDivVis("associateUsersAndGroups")}><i className={`material-icons ${styles.mocicon}`}>person_add_alt_1</i><div>Assign</div></div>
+                <div className={styles.iconContainer} onClick={(e) => changeDivVis("createChangeNotice")}><i className={`material-icons ${styles.mocicon}`}>keyboard_double_arrow_right</i><div>Change</div></div>
+            </div>
+            <hr></hr>
+
             {showCreateNewUser &&
                 <ManageUsers usersInOrg={usersInOrg} setUsersInOrg={setUsersInOrg} refreshUsersInOrg={RefreshUsersAndGroups}></ManageUsers>
             }

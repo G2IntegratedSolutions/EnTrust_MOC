@@ -77,19 +77,30 @@ const ManageGroups: React.FC<ManageGroupsProps> = ({ groupsInOrg, setGroupsInOrg
         });
     }
 
-    const deleteExistingGroup = async () => {
-        let currentGroup = groupsInOrg[existingGroupIndex];
-        const idOfGroupToDelete = currentGroup.id;
-        const db = getFirestore();
-        // delete the user in the database with the id of the user to delete using a query
-        const usersCollectionRef = collection(db, 'Groups');
-        const q = query(usersCollectionRef, where("id", "==", idOfGroupToDelete));
-        const querySnapshot = await getDocs(q);
-        querySnapshot.forEach((doc) => {
-            deleteDoc(doc.ref);
-        });
-        setExistingGroupIndex(0);
-        refreshUsersAndGroupsInOrg();
+
+    async function deleteExistingGroup() {
+        try{
+            const db = getFirestore();
+            let currentGroup = groupsInOrg[existingGroupIndex];
+            const idOfGroupToDelete = currentGroup.id;
+            const groupRef = collection(db, 'Groups');
+            const q = query(groupRef, where('id', '==', idOfGroupToDelete));
+            console.log('Group deleted  ' + idOfGroupToDelete);
+            const querySnapshot = await getDocs(q);
+            const deletePromises = querySnapshot.docs.map((doc) => deleteDoc(doc.ref));
+    
+            await Promise.all(deletePromises);
+            //.console.log('Group deleted 1');
+            setExistingGroupIndex(0);
+            refreshUsersAndGroupsInOrg();
+            console.log('Group deleted');
+            toast.success('Group successfully deleted!');
+        }
+        catch(ex){
+            console.error('Error deleting group:', ex);
+            toast.error('Error deleting group: ' + ex);
+        }
+
     }
 
     return (
@@ -99,11 +110,11 @@ const ManageGroups: React.FC<ManageGroupsProps> = ({ groupsInOrg, setGroupsInOrg
             <h4>Create New Group</h4>
             <form className={styles.formContainer} >
                 <div className="form-group">
-                    <label htmlFor="groupName">Name:</label>
+                    <label className='form-label' htmlFor="groupName">Name:</label>
                     <input type="text" className='form-control' name="name" value={group.name} onChange={handleNewGroupChange} required />
                 </div>
                 <div className="form-group">
-                    <label htmlFor="description">Description:</label>
+                    <label className='form-label' htmlFor="description">Description:</label>
                     <input type="text" className='form-control' name="description" value={group.description} onChange={handleNewGroupChange} required />
                 </div>
                 <div><button className='btn btn-primary' onClick={handleNewGroupSubmit}>Create Group</button></div>
@@ -111,7 +122,7 @@ const ManageGroups: React.FC<ManageGroupsProps> = ({ groupsInOrg, setGroupsInOrg
             </form>
             <hr></hr>
             <h4>Update/Remove Existing Group</h4>
-            <span onClick={deleteExistingGroup} className={styles.deleteSelected}>Remove this Group</span>
+            <span onClick={deleteExistingGroup} className={styles.deleteSelected}>Remove Group</span>
             <label>Group Name:</label>
             <select className='form-control' onChange={handlExistingGroupChange}>
                 {groupsInOrg.map((groupInOrg, index) => (
@@ -123,7 +134,7 @@ const ManageGroups: React.FC<ManageGroupsProps> = ({ groupsInOrg, setGroupsInOrg
                 <div>Update this Group</div>
                 <form  >
                     <div>
-                        <label>Group Name:</label>
+                        <label className='form-label'>Group Name:</label>
                         <input className={`${styles.narrow} form-control`} type="text" name="groupName"
                             placeholder=
                             {groupsInOrg && existingGroupIndex >= 0 && existingGroupIndex < groupsInOrg.length ? groupsInOrg[existingGroupIndex].name : ''}
@@ -136,7 +147,7 @@ const ManageGroups: React.FC<ManageGroupsProps> = ({ groupsInOrg, setGroupsInOrg
                         </input>
                     </div>
                     <div>
-                        <label>Group Description:</label>
+                        <label className='form-label'>Group Description:</label>
                         <input className={`${styles.narrow} form-control`} type="text" name="groupDescription"
                             placeholder=
                             {groupsInOrg && existingGroupIndex >= 0 && existingGroupIndex < groupsInOrg.length ? groupsInOrg[existingGroupIndex].description : ''}

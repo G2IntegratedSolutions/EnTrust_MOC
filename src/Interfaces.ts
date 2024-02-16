@@ -13,20 +13,26 @@ export interface User {
     groups: string[];
     isAdmin: boolean;
 }
-
-interface ChangeNotice {
+// 'MOC#', 'Status', 'Date of Creation', 'Date of Publication', 'Change Type', 'Change Topic', 
+// 'Groups', 'Short Description', 'Long Description', 'Impacts', 'Required Date of Completion', 
+// 'Notes', 'Attachments'];
+export interface ChangeNotification {
     mocNumber: string;
+    status: string;
     dateOfCreation: Date;
     dateOfPublication: Date;
-    timeOfImplemenation: Date;
+    type: string;
+    timeOfImplementation: Date;
+    topic:string
     categoryOfMOC: string;
     typeOfMOC: string;
     specificTopic: string;
-    affectedGroups: string;
-    reasonForChange: string;
-    reasonForChangeDescription: string;
+    groupNames: string;
+    shortReasonForChange: string;
+    descriptionOfChange: string;
     impacts: string;
     requiredDateOfCompletion: Date;
-    openNotes: string;
+    notes: string;
     attachments: string;
+
 }

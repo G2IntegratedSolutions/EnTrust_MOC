@@ -22,12 +22,13 @@ const ManagerUserGroupAssoc: React.FC<ManageUserGroupAssocProps> = ({ usersInOrg
     const groupDescriptionRef = useRef<HTMLInputElement>(null);
     const authContext = useAuth();
     const [selectedGroupMembershipIndex, setSelectedGroupMembershipIndex] = useState<number | undefined>(0);
-    const [groupsForSelectedUser, setGroupsForSelectedUser] = useState<string[]>(['A', 'B']); // [ 'group1', 'group2'
+    const [groupsForSelectedUser, setGroupsForSelectedUser] = useState<Group[]>([]); // [ 'group1', 'group2'
     const [selectedUserEmail, setSelectedUserEmail] = useState(authContext.user?.email);
     const [selectedGroup, setSelectedGroup] = useState('');
     const [selectedGroupMembersip, setSelectedGroupMembership] = useState<string>('');
 
     const handleSelectedUserEmail = async (e: ChangeEvent<HTMLSelectElement>) => {
+        debugger;
         setSelectedUserEmail(e.target.value);
     }
 
@@ -43,7 +44,7 @@ const ManagerUserGroupAssoc: React.FC<ManageUserGroupAssocProps> = ({ usersInOrg
             const userSnapshot = getDocs(qUsers).then((querySnapshot) => {
                 const selectedUserInOrg = querySnapshot.docs.map(doc => doc.data());
                 if (selectedUserInOrg.length > 0) {
-                    setGroupsForSelectedUser(selectedUserInOrg[0].groups as string[]);
+                    setGroupsForSelectedUser(selectedUserInOrg[0].groups);
                 }
                 else {
                     setGroupsForSelectedUser([]);
@@ -63,7 +64,7 @@ const ManagerUserGroupAssoc: React.FC<ManageUserGroupAssocProps> = ({ usersInOrg
         }
         if (groupsForSelectedUser.length > 0) {
             setSelectedGroupMembershipIndex(0);
-            //debugger;
+            // ebugger;
             if (selectedGroupMembershipRef.current) {
                 (selectedGroupMembershipRef.current as HTMLSelectElement).selectedIndex = 0;
             }
@@ -75,6 +76,7 @@ const ManagerUserGroupAssoc: React.FC<ManageUserGroupAssocProps> = ({ usersInOrg
 
     const handleAssignToGroup = async () => {
         console.log("Assigning user to group")
+        // ebugger
         let groupToAdd = selectedGroup
         if (groupToAdd === '') {
             groupToAdd = groupsInOrg[0].name;
@@ -119,7 +121,9 @@ const ManagerUserGroupAssoc: React.FC<ManageUserGroupAssocProps> = ({ usersInOrg
             console.error('Error creating group:', error);
         }
     }
-
+    const getGroupFromIndex = (id: string) => {
+        return groupsInOrg.find((group) => group.id === id);
+    }
     function deleteSelectedGroup() {
         let groupToDelete = (selectedGroupMembershipRef.current as HTMLSelectElement | null)?.value;
         let currentUser = selectedUserEmail;
@@ -172,17 +176,27 @@ const ManagerUserGroupAssoc: React.FC<ManageUserGroupAssocProps> = ({ usersInOrg
                 }
                 }
                 >
-                    {groupsForSelectedUser.map((groupName, index) => (
-                        <option key={index} value={groupName}>{groupName}</option>
-                    ))}
+                    {groupsForSelectedUser.map((group, index) => {
+                        // ebugger;
+                        let hydratedGroup = getGroupFromIndex(group.toString());
+                        // ebugger;
+                        return (
+                            hydratedGroup && <option key={index} value={hydratedGroup.id}>{hydratedGroup.name}</option>
+                        );
+                    })}
                 </select>
             </div>
             <div className="form-group">
                 <label htmlFor="group">Select a new group to associate to the selected user:</label>
                 <select className='form-control' onChange={(e) => setSelectedGroup(e.target.value)}>
-                    {groupsInOrg.map((group, index) => (
-                        <option key={index} value={group.name}>{group.name}</option>
-                    ))}
+                    {groupsInOrg.map((group, index) => {
+                        // ebugger;
+                        //let hydratedGroup = getGroupFromIndex(group.toString());
+                        // ebugger;
+                        return (
+                            <option key={index} value={group.id}>{group.name}</option>
+                        );
+                    })}
                 </select>
             </div>
             <button className={`${styles.btn} btn btn-primary`} onClick={handleAssignToGroup}>Assign {selectedUserEmail} to selected group</button>
