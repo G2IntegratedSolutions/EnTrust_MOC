@@ -4,10 +4,12 @@ import './MyChangeNotifications.css';
 import './App.css';
 import { useAuth } from './AuthContext';
 import { getFirestore, query, where, collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
-import {ChangeNotification } from './Interfaces';
+import { ChangeNotification } from './Interfaces';
+import { useNavigate } from 'react-router-dom';
 
 const MyChangeNotifications = () => {
-    const columns = ['MOC#','Status' , 'Date of Creation', 'Date of Publication', 'Change Type','Time', 'Change Topic', 'Groups', 'Short Description', 'Long Description', 'Impacts', 'Required Date of Completion', 'Notes', 'Attachments'];
+    const navigate = useNavigate();
+    const columns = ['MOC#', 'Status', 'Date of Creation', 'Date of Publication', 'Change Type', 'Time', 'Change Topic', 'Groups', 'Short Description', 'Long Description', 'Impacts', 'Required Date of Completion', 'Notes', 'Attachments'];
     const columnWidths = [100, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200]; // Adjust these values as needed
     //const sampleData = ['Sample 1', 'Sample 2', 'Sample 3', 'Sample 4', 'Sample 5', 'Sample 6', 'Sample 7', 'Sample 8', 'Sample 9', 'Sample 10', 'Sample 11', 'Sample 12'];
     //const sampleCNs: string[][] =  [sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData];
@@ -50,7 +52,7 @@ const MyChangeNotifications = () => {
         setSelectedRow(index);
     }
 
-  
+
     const renderRow = (cn: ChangeNotification, rowIndex: number) => {
         const rowDataArray = [
             cn.mocNumber,
@@ -59,7 +61,7 @@ const MyChangeNotifications = () => {
             cn.dateOfPublication,
             cn.type,
             cn.timeOfImplementation,
-            cn.topic, 
+            cn.topic,
             cn.groupNames,
             cn.shortReasonForChange,
             cn.descriptionOfChange,
@@ -77,46 +79,56 @@ const MyChangeNotifications = () => {
                 ))}
             </tr>
         );
-    } 
+    }
 
     return (
-        <div className='mocPage'>
-            <h2>My Change Notifications</h2>
-
-            {cnsForThisUser.length === 0 ? (
-                <div>No data to display</div>
-            ) : (
-                <div className="tableContainer">
-                    <table className="table table-bordered">
-                        <thead className='th columnHeader'>
-                            <tr>
-                                {columns.map((column, index) => (
-                                    <th key={index} className="column th columnHeader" style={{ minWidth: columnWidths[index] }}>
-                                        {column}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {cnsForThisUser.map(renderRow)}
-                        </tbody>
-                    </table>
-
-                </div>
-
-            )}
-            <hr>
-            </hr>
-
-            <div className="details">
-                {/* {columns.map((column, index) => (
-                    <div key={index}>
-                        <label>{column}</label>
-                        <input type="text" value={cnsForThisUser[selectedRow][index]} disabled={authContext.user?.isAdmin !== true} />
-                    </div>
-                ))} */}
+        <>
+        {cnsForThisUser.length > 0 ? (
+            <div className="scrollableContainer" >
+                <div className="iconContainer" onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon`}>search</i><div>Search</div></div>
+                <div className="iconContainer" onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon`}>star</i><div>Acknowledge</div></div>
+                <div className="iconContainer" onClick={(e) => navigate('/')} ><i className={`material-icons ent-icon`}>edit</i><div>Edit</div></div>
+                <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>done</i><div>Accept</div></div>
+                <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>delete</i><div>Reject</div></div>
+                <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>calendar_month</i><div>Re-Schedule</div></div>
+                <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>archive</i><div>Archive</div></div>
+                <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>email</i><div>Email</div></div>
+                <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>notifications</i><div>Notifications</div></div>
             </div>
-        </div>
+        ) : <></>}
+            <div className='mocPage'>
+                <h2>My Change Notifications</h2>
+
+                {cnsForThisUser.length === 0 ? (
+                    <div>No data to display</div>
+                ) : (
+                    <div className="tableContainer">
+                        <table className="table table-bordered">
+                            <thead className='th columnHeader'>
+                                <tr>
+                                    {columns.map((column, index) => (
+                                        <th key={index} className="column th columnHeader" style={{ minWidth: columnWidths[index] }}>
+                                            {column}
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {cnsForThisUser.map(renderRow)}
+                            </tbody>
+                        </table>
+
+                    </div>
+
+                )}
+                <hr>
+                </hr>
+
+                <div className="details">
+                    <h4>Test</h4>
+                </div>
+            </div>
+        </>
     );
 }
 

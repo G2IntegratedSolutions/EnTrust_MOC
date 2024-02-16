@@ -117,6 +117,8 @@ const CreateChangeNotification: React.FC = () => {
                 notes,
                 attachments,
                 groupIds: selectedGroups.map(g => g.id),
+                groupNames: selectedGroups.map(g => g.name),
+                status: 'Pending Approval',
                 organization: authContext.user?.organization
             };
             const db = getFirestore();

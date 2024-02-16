@@ -93,3 +93,21 @@ label {
 .row {
   --bs-gutter-x:unset !important;
 }
+.ent-icon {
+  color: var(--ent-blue) !important;
+
+}
+.iconContainer {
+  display: inline-block;
+  margin-right: 60px !important;
+  text-align: center;
+  cursor: pointer;
+  color:var(--ent-blue)
+}
+.scrollableContainer {
+  overflow-x: auto;
+  width: 90vw;
+  white-space: nowrap;
+  margin-top: 10px;
+  margin-left:10px;
+}
