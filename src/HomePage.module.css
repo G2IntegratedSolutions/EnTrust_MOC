@@ -1,24 +1,22 @@
 
 .mocManager{
-    font-size: clamp(28px, 3vw, 56px);
+    font-size: clamp(22px, 3vw, 40px);
     white-space: nowrap;
     font-weight: bold;
     color:var(--bs-primary);
     z-index: 1 ;
-    line-height: min(20px, 3vw);
-    top: 0px;
+    line-height:clamp(22px, 3vw, 40px);
 }
 .login{
     color:white;
     font-weight:600
 }
 .manageYourChange{
-    font-size: 14px;
+    font-size: 12px;
     font-weight: bold;  
     font-style: italic; 
-    color: var(--bs-success);
-    top: 40px;
-    margin-top:10px;
+    color: var(--ent-blue);
+    margin-top: -5px;
 }
 
 .box {
