@@ -18,8 +18,8 @@
 }
 .tableContainer {
     overflow-x: auto;
-    width: 98vw;
-    margin-left:1vw;
+    width: calc(100% - 40px);
+
 }
 
 .column {

@@ -89,14 +89,8 @@ const Admin = () => {
                 <div className={styles.iconContainer } onClick={(e) => changeDivVis("associateUsersAndGroups")}><i className={`material-icons ${styles.mocicon}`}>person_add_alt_1</i><div>Assign</div></div>
                 <div className={styles.iconContainer} onClick={(e) => changeDivVis("createChangeNotice")}><i className={`material-icons ${styles.mocicon}`}>keyboard_double_arrow_right</i><div>Change</div></div>
             </div>
-            {/* <i className={`material-icons ${styles.mocicon}`}>person</i>
-            <i className={`material-icons ${styles.mocicon}`}>groups</i>
-            <i className={`material-icons ${styles.mocicon}`}>person_add_alt_1</i>
-            <i className={`material-icons ${styles.mocicon}`}>keyboard_double_arrow_right</i> */}
-            {/* <span onClick={(e) => changeDivVis("createNewUser")} className={styles.actionOption}>Users</span>
-            <span onClick={(e) => changeDivVis("createNewGroup")} className={styles.actionOption}>Groups</span>
-            <span onClick={(e) => changeDivVis("associateUsersAndGroups")} className={styles.actionOption}>Assign</span>
-            <span onClick={(e) => changeDivVis("createChangeNotice")} className={styles.actionOption}>Change</span> */}
+            <hr></hr>
+
             {showCreateNewUser &&
                 <ManageUsers usersInOrg={usersInOrg} setUsersInOrg={setUsersInOrg} refreshUsersInOrg={RefreshUsersAndGroups}></ManageUsers>
             }

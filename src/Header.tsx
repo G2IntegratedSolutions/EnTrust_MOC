@@ -1,5 +1,5 @@
 import banner from './assets/banner.png';
-import arrow from './assets/arrow2.png';
+import arrow from './assets/arrow3.png';
 import styles from './HomePage.module.css';
 import { Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';
@@ -15,7 +15,7 @@ const Header: React.FC = () => {
                     <img src={arrow} alt="arrow" className="img-fluid arrow" />
                     <img src={banner} alt="Header Logo" style={{marginLeft:'10px'}} className="img-fluid header-logo" />
                 </div>
-                <div className="col text-left">
+                <div className="col text-left" style={{zIndex:12}}>
                     <div className={`${styles.mocManager} ${styles.outlinedText} text-left`}>MoC MANAGER</div>
                     <div className={styles.manageYourChange + " text-left"}>Advancing Change</div>
                 </div>

@@ -57,20 +57,17 @@ label {
     font-style: bold;
     color: var(--ent-blue) !important;
 }
-H2{
-    color: var(--ent-green) !important;
-}
-.associateUserAndGroups, .createChangeNotice, .createNewGroup, .createNewUser {
-    margin-top:50px;
-    margin-left: 20px;
-}
+
+
 .iconContainer {
     display: inline-block;
     margin-right: 60px !important;
     text-align: center;
+    cursor: pointer;
+    color:var(--ent-blue)
 }
 .scrollableContainer {
-    overflow-x: scroll;
+    overflow-x: auto;
     width: 90vw;
     white-space: nowrap;
     margin-top: 10px;
