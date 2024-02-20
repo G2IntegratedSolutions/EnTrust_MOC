@@ -7,6 +7,7 @@ import { collection, addDoc, getDocs, updateDoc } from 'firebase/firestore';
 import { Group, User } from './Interfaces'
 import { generateRandomString } from './common';
 import { toast } from 'react-toastify';
+import ModalComponent from './ModalComponent';
 
 const CreateChangeNotification: React.FC = () => {
 
@@ -31,10 +32,12 @@ const CreateChangeNotification: React.FC = () => {
     const [requiredDateOfCompletion, setRequiredDateOfCompletion] = useState('');
     const [notes, setNotes] = useState('');
     const [attachments, setAttachments] = useState<File[]>([]);
-
     const authContext = useAuth();
     const [mocNumber, setMocNumber] = useState(generateRandomString(8));
     const changeCategories = ['Safety', 'Quality', 'Production', 'Facilities', 'IT', 'HR', 'Finance', 'Other'];
+    const [modalIsOpen, setModalIsOpen] = useState(false);
+    const [infoContent, setInfoContent] = useState('');
+    const [infoHeader, setInfoHeader] = useState('');
 
     useEffect(() => {
         let org = authContext.user?.organization;
@@ -65,7 +68,7 @@ const CreateChangeNotification: React.FC = () => {
         setAttachments([]);
 
         const numGroupsToSelect = Math.floor(Math.random() * (groupsForOrganization.length + 1));
-        const xselectedGroups : Group[] = [];
+        const xselectedGroups: Group[] = [];
 
         for (let i = 0; i < numGroupsToSelect; i++) {
             let randomIndex = Math.floor(Math.random() * groupsForOrganization.length);
@@ -153,17 +156,35 @@ const CreateChangeNotification: React.FC = () => {
 
         return longString.substring(start, start + length);
     }
+    const handleInfoClick = (id: string) => {
+        setInfoContent("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut nisl a ligula eleifend finibus non quis justo. Duis eu interdum nulla. Nullam mollis leo vestibulum, rhoncus nulla in, interdum magna. Morbi in metus sit amet ligula tempus pharetra. Sed ac urna quis sapien maximus fermentum. Nunc velit dui, finibus in ultrices in, blandit eget massa. Praesent in mi faucibus, posuere nisl ut, pulvinar urna. In hac habitasse platea dictumst. Nam aliquet convallis augue id dignissim. Maecenas ac congue mauris.");
+        setInfoHeader(id);
+        console.log("setting modelisOpen to true")
+        setModalIsOpen(true);
+    };
 
     return (
-        <div>
-            <h2>Create Change Notice</h2>
-            <p>On this page, you can create a Change Notification and assign it to one or more groups in your organization.
-            </p>
+        <div className='mocPage'>
+            <div>
+                <ModalComponent
+                    isOpen={modalIsOpen}
+                    onRequestClose={() => setModalIsOpen(false)}
+                    contentLabel="Example Modal"
+                    infoContent={infoContent}
+                    infoHeader={infoHeader}
+                />
+                <div className={`${styles.associateUsersAndGroups} mocPage`}>
+
+                    <h2>Create Change Notice</h2>
+                    <p>On this page, you can create a Change Notification and assign it to one or more groups in your organization.</p>
+                </div>
+            </div>
             {/* mocNumber, dateOfCreate, dateOfPublication, timeOfImplemenation, category, type, topic, groups, shortReasonForChange, 
             descriptionOfChange, impacts, requiredDateOfCompletion, notes, attachments */}
             <form >
                 <div className="mb-3">
                     <label htmlFor="mocNumber" className="form-label">MOC Number</label>
+                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('mocNumber')}>info</i>
                     <input
                         type="text"
                         className="form-control"
@@ -174,6 +195,7 @@ const CreateChangeNotification: React.FC = () => {
                 </div>
                 <div className="mb-3">
                     <label htmlFor="dateOfCreation" className="form-label">Date of Creation</label>
+                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Date of Creation')}>info</i>
                     <input
                         type="date"
                         className="form-control"
@@ -184,6 +206,7 @@ const CreateChangeNotification: React.FC = () => {
                 </div>
                 <div className="mb-3">
                     <label htmlFor="dateOfPublication" className="form-label">Date of Publication</label>
+                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Date of Publication')}>info</i>
                     <input
                         type="date"
                         className="form-control"
@@ -194,6 +217,7 @@ const CreateChangeNotification: React.FC = () => {
                 </div>
                 <div className="mb-3">
                     <label htmlFor="timeOfImplementation" className="form-label">Time of Implementation</label>
+                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Time of Implementation')}>info</i>
                     <input
                         type="time"
                         className="form-control"
@@ -204,6 +228,7 @@ const CreateChangeNotification: React.FC = () => {
                 </div>
                 <div className="mb-3">
                     <label htmlFor="category" className="form-label">Category</label>
+                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Category')}>info</i>
                     <select className='form-control'
                         value={selectedChangeCategory}
                         onChange={(e) => setSelectedChangeCategory(e.target.value)}>
@@ -214,6 +239,7 @@ const CreateChangeNotification: React.FC = () => {
                 </div>
                 <div className="mb-3">
                     <label htmlFor="type" className="form-label">Type</label>
+                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Type')}>info</i>
                     <input
                         type="text"
                         className="form-control"
@@ -224,6 +250,7 @@ const CreateChangeNotification: React.FC = () => {
                 </div>
                 <div className="mb-3">
                     <label htmlFor="topic" className="form-label">Topic</label>
+                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Change Topic')}>info</i>
                     <input
                         type="text"
                         className="form-control"
@@ -234,6 +261,7 @@ const CreateChangeNotification: React.FC = () => {
                 </div>
                 <div className="mb-3">
                     <label htmlFor="groups" className="form-label">Groups</label>
+                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Groups')}>info</i>
                     <div id="groups">
                         {groupsForOrganization.map((group) => {
                             return (
@@ -256,6 +284,7 @@ const CreateChangeNotification: React.FC = () => {
                 </div>
                 <div className="mb-3">
                     <label htmlFor="shortReasonForChange" className="form-label">Short Reason For Change</label>
+                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Short Reason For Change')}>info</i>
                     <input
                         type="text"
                         className="form-control"
@@ -265,6 +294,7 @@ const CreateChangeNotification: React.FC = () => {
                 </div>
                 <div className="mb-3">
                     <label htmlFor="descriptionOfChange" className="form-label">Description Of Change</label>
+                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Description of Change')}>info</i>
                     <textarea
                         className="form-control"
                         value={descriptionOfChange}
@@ -274,6 +304,7 @@ const CreateChangeNotification: React.FC = () => {
                 </div>
                 <div className="mb-3">
                     <label htmlFor="impacts" className="form-label">Impacts</label>
+                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Impacts')}>info</i>
                     <input
                         type="text"
                         className="form-control"
@@ -284,6 +315,7 @@ const CreateChangeNotification: React.FC = () => {
                 </div>
                 <div className="mb-3">
                     <label htmlFor="requiredDateOfCompletion" className="form-label">Required Date Of Completion</label>
+                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Required Date of Completion')}>info</i>
                     <input
                         type="date"
                         className="form-control"
@@ -294,6 +326,7 @@ const CreateChangeNotification: React.FC = () => {
                 </div>
                 <div className="mb-3">
                     <label htmlFor="notes" className="form-label">Notes</label>
+                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Notes')}>info</i>
                     <input
                         type="text"
                         className="form-control"
@@ -304,6 +337,7 @@ const CreateChangeNotification: React.FC = () => {
                 </div>
                 <div className="mb-3">
                     <label htmlFor="attachments" className="form-label">Attachments</label>
+                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Attachments')}>info</i>
                     <input
                         type="file"
                         className="form-control"

@@ -97,6 +97,24 @@ label {
   color: var(--ent-blue) !important;
 
 }
+.ent-mini-icon {
+  color: var(--ent-blue) !important;
+  font-size: 1.3em !important;
+  margin-left: 5px;
+  vertical-align: text-bottom;
+  cursor: pointer;
+}
+.ReactModal__Content {
+  background-color: rgba(200, 200, 200, .85) !important;
+  width: 300px !important;
+  height: 300px !important;
+  border-radius: 10px !important;
+  border: 1px solid var(--ent-blue) !important;
+  z-index: 1000 !important;
+  top: 50% !important;;
+  left: 50% !important;;
+  transform: translate(-50%, -50%) !important;;
+}
 .iconContainer {
   display: inline-block;
   margin-right: 60px !important;

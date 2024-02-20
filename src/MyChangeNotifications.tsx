@@ -6,6 +6,7 @@ import { useAuth } from './AuthContext';
 import { getFirestore, query, where, collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { ChangeNotification } from './Interfaces';
 import { useNavigate } from 'react-router-dom';
+import ChangeNotificationDetailForm from './ChangeNotficiationDetailForm';
 
 const MyChangeNotifications = () => {
     const navigate = useNavigate();
@@ -14,6 +15,7 @@ const MyChangeNotifications = () => {
     //const sampleData = ['Sample 1', 'Sample 2', 'Sample 3', 'Sample 4', 'Sample 5', 'Sample 6', 'Sample 7', 'Sample 8', 'Sample 9', 'Sample 10', 'Sample 11', 'Sample 12'];
     //const sampleCNs: string[][] =  [sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData];
     const [selectedRow, setSelectedRow] = useState(0);
+    const [activeCN, setActiveCN] = useState<ChangeNotification | null>(null);
     const authContext = useAuth();
     const [selectedUserEmail, setSelectedUserEmail] = useState(authContext.user?.email);
     const [cnsForThisUser, setCnsForThisUser] = useState<ChangeNotification[]>([]);
@@ -34,7 +36,7 @@ const MyChangeNotifications = () => {
                     const q = query(collection(db, "ChangeNotifications"), where("groupIds", "array-contains-any", groupsForUser));
                     const querySnapshot = await getDocs(q);
                     setCnsForThisUser(querySnapshot.docs.map(doc => doc.data()) as ChangeNotification[]);
-                    // debugger;
+                    // ebugger;
                     // querySnapshot.forEach((doc) => {
                     //     debugger;
                     //     console.log(doc.id, " => ", doc.data());
@@ -49,6 +51,8 @@ const MyChangeNotifications = () => {
 
     const handleRowClick = (index: number) => {
         console.log('Row clicked:', index);
+        setActiveCN(cnsForThisUser[index]);
+        //debugger;
         setSelectedRow(index);
     }
 
@@ -124,9 +128,7 @@ const MyChangeNotifications = () => {
                 <hr>
                 </hr>
 
-                <div className="details">
-                    <h4>Test</h4>
-                </div>
+                <ChangeNotificationDetailForm changeNotice={activeCN}></ChangeNotificationDetailForm>
             </div>
         </>
     );

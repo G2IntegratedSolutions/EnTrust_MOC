@@ -47,12 +47,7 @@ const Admin = () => {
             const groups = querySnapshot.docs.map(doc => doc.data());
             setGroupsInOrg(groups as Group[]);
         });
-        // if (selectedGroupMembershipRef.current) {
-        //     console.log("Ref is current");
-        //     //debugger;
-        //     console.log("Setting selected index to: " + selectedGroupMembershipIndex ?? 0);
-        //     (selectedGroupMembershipRef.current as any).selectedIndex = selectedGroupMembershipIndex ?? 0;
-        // }
+
     }
 
     const changeDivVis = (divName: string) => {
