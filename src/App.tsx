@@ -22,7 +22,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/myChangeNotifications" element={<MyChangeNotifications />} />
-            <Route path="/" element={<HomePage message='test' />} />
+            <Route path="/" element={<HomePage />} />
           </Routes>
         </Router>
       </AuthProvider>
