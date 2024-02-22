@@ -215,13 +215,13 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                         checked={existingUserIsAdmin}
                     /></div>
                     <div ><label>Make Creator?</label><input type="checkbox" name="isCreator"
-                        checked={usersInOrg[existingUserIndex].isCreator}
+                        checked={usersInOrg?.[existingUserIndex]?.isCreator || false}
                     /></div>
                     <div ><label>Make Approver?</label><input type="checkbox" name="isApprover"
-                        checked={usersInOrg[existingUserIndex].isApprover}
+                        checked={usersInOrg?.[existingUserIndex]?.isApprover || false}
                     /></div>
                     <div ><label>Make Stakeholder?</label><input type="checkbox" name="isStakeholder"
-                        checked={usersInOrg[existingUserIndex].isStakeholder}
+                        checked={usersInOrg?.[existingUserIndex]?.isStakeholder || false}
                     /></div>
                     <button className='btn btn-primary' disabled={!isPhoneValid} type="submit" >Update User</button>
                 </form>

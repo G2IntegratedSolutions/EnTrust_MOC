@@ -29,11 +29,13 @@ const Admin = () => {
     const [group, setGroup] = useState<Group>({ id: '', name: '', description: '', organization: '' });
 
     useEffect(() => {
+        // ebugger;
         RefreshUsersAndGroups();
     }, []);
 
     const RefreshUsersAndGroups = async () => {
         console.log("getting users and groups")
+        // ebugger;
         const db = getFirestore();
         const usersCollection = collection(db, 'Users');
         const qUsers = query(usersCollection, where("organization", "==", authContext.user?.organization));
