@@ -14,7 +14,8 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
     useEffect(() => {
         // ebugger
         setCN(props?.changeNotice ?? null);
-    }, [props?.changeNotice?.mocNumber]);
+    }, [props?.changeNotice?.creator]);
+
     const timeStamp = Date.now();
     const date = new Date(timeStamp);
     const year = date.getFullYear();
@@ -42,7 +43,8 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
     const [selectedChangeCategory, setSelectedChangeCategory] = useState('');
     return (
         <div>
-            <form >
+            <p>{cn?.creator}</p>
+            {/* <form >
                 <div className="mb-3">
                     <label htmlFor="mocNumber" className="form-label">MOC Number</label>
                     <input
@@ -133,7 +135,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                                     </label>
                                 </div>
                             );
-                        })} */}
+                        })} 
                     </div>
                 </div>
                 <div className="mb-3">
@@ -197,7 +199,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                     />
                 </div>
             </form>
-
+ */}
 
         </div>
     );

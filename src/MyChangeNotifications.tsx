@@ -33,9 +33,22 @@ const MyChangeNotifications = () => {
                 const selectedUserInOrg = querySnapshot.docs.map(doc => doc.data());
                 if (selectedUserInOrg.length > 0) {
                     const groupsForUser = selectedUserInOrg[0].groups;
-                    const q = query(collection(db, "ChangeNotifications"), where("groupIds", "array-contains-any", groupsForUser));
+                    const q = query(collection(db, "changeNotifications"), where("groupIds", "array-contains-any", groupsForUser));
                     const querySnapshot = await getDocs(q);
-                    setCnsForThisUser(querySnapshot.docs.map(doc => doc.data()) as ChangeNotification[]);
+                    // ebugger;
+                    const docs = querySnapshot.docs;
+                    // Initialize an empty array to hold the change notifications
+                    let changeNotifications = [];
+
+                    // Loop through the documents
+                    for (let i = 0; i < docs.length; i++) {
+                        // Get the data from the current document
+                        let docData = docs[i].data();
+
+                        // Cast the data to a ChangeNotification and add it to the array
+                        changeNotifications.push(docData as ChangeNotification);
+                    }
+                    setCnsForThisUser(changeNotifications);
                     // ebugger;
                     // querySnapshot.forEach((doc) => {
                     //     debugger;
@@ -59,19 +72,21 @@ const MyChangeNotifications = () => {
 
     const renderRow = (cn: ChangeNotification, rowIndex: number) => {
         const rowDataArray = [
-            cn.mocNumber,
-            cn.status,
-            cn.dateOfCreation,
-            cn.dateOfPublication,
-            cn.type,
-            cn.timeOfImplementation,
-            cn.topic,
-            cn.groupNames,
-            cn.shortReasonForChange,
-            cn.descriptionOfChange,
-            cn.impacts,
-            cn.requiredDateOfCompletion,
-            cn.notes
+            cn.id,
+            cn.creator
+            // cn.mocNumber,
+            // cn.status,
+            // cn.dateOfCreation,
+            // cn.dateOfPublication,
+            // cn.type,
+            // cn.timeOfImplementation,
+            // cn.topic,
+            // cn.groupNames,
+            // cn.shortReasonForChange,
+            // cn.descriptionOfChange,
+            // cn.impacts,
+            // cn.requiredDateOfCompletion,
+            // cn.notes
         ];
         // ebugger;
         return (
@@ -87,19 +102,20 @@ const MyChangeNotifications = () => {
 
     return (
         <>
-        {cnsForThisUser.length > 0 ? (
-            <div className="scrollableContainer" >
-                <div className="iconContainer" onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon`}>search</i><div>Search</div></div>
-                <div className="iconContainer" onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon`}>star</i><div>Acknowledge</div></div>
-                <div className="iconContainer" onClick={(e) => navigate('/')} ><i className={`material-icons ent-icon`}>edit</i><div>Edit</div></div>
-                <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>done</i><div>Accept</div></div>
-                <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>delete</i><div>Reject</div></div>
-                <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>calendar_month</i><div>Re-Schedule</div></div>
-                <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>archive</i><div>Archive</div></div>
-                <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>email</i><div>Email</div></div>
-                <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>notifications</i><div>Notifications</div></div>
-            </div>
-        ) : <></>}
+        <i className="material-icons ent-icon home-icon" onClick={() => navigate(-1)}>home</i>
+            {cnsForThisUser.length > 0 ? (
+                <div className="scrollableContainer" >
+                    <div className="iconContainer" onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon`}>search</i><div>Search</div></div>
+                    <div className="iconContainer" onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon`}>star</i><div>Acknowledge</div></div>
+                    <div className="iconContainer" onClick={(e) => navigate('/')} ><i className={`material-icons ent-icon`}>edit</i><div>Edit</div></div>
+                    <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>done</i><div>Accept</div></div>
+                    <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>delete</i><div>Reject</div></div>
+                    <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>calendar_month</i><div>Re-Schedule</div></div>
+                    <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>archive</i><div>Archive</div></div>
+                    <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>email</i><div>Email</div></div>
+                    <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>notifications</i><div>Notifications</div></div>
+                </div>
+            ) : <></>}
             <div className='mocPage'>
                 <h2>My Change Notifications</h2>
 

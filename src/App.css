@@ -8,7 +8,7 @@
   --ent-red: #cf202f;
   --ent-light-gray: #b3b4b2
   --ent-dark-gray: #5d6771;
-  
+
   --ent-light-blue: #00b0d0;
   --secondary-color: #6c757d;
   --success-color: #28a745;
@@ -20,6 +20,9 @@
 }
 .App {
   text-align: center;
+}
+img.header-logo {
+  width: clamp(80px, 20vw, 160px);
 }
 .login2 {
   font-size: 22px;
@@ -104,6 +107,10 @@ label {
 .ent-icon {
   color: var(--ent-blue) !important;
 
+}
+.home-icon {
+  margin-left: 10px;
+  cursor: pointer;
 }
 .ent-mini-icon {
   color: var(--ent-blue) !important;
