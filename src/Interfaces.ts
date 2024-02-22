@@ -19,10 +19,10 @@ export interface User {
 export interface ChangeNotification {
     mocNumber: string;
     status: string;
-    dateOfCreation: Date;
-    dateOfPublication: Date;
+    dateOfCreation:  Date|string;
+    dateOfPublication:  Date|string;
     type: string;
-    timeOfImplementation: Date;
+    timeOfImplementation: Date|string;
     topic:string
     categoryOfMOC: string;
     typeOfMOC: string;
@@ -31,7 +31,7 @@ export interface ChangeNotification {
     shortReasonForChange: string;
     descriptionOfChange: string;
     impacts: string;
-    requiredDateOfCompletion: Date;
+    requiredDateOfCompletion:  Date|string;
     notes: string;
     attachments: string;
 

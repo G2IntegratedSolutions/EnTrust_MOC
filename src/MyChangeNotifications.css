@@ -18,8 +18,7 @@
 }
 .tableContainer {
     overflow-x: auto;
-    width: calc(100% - 40px);
-
+    max-height: 300px;
 }
 
 .column {
@@ -28,10 +27,9 @@
 .th.columnHeader {
     background-color: var(--ent-green) !important;
     color:white;
+    
 }
-.tableContainer {
-    max-height: 300px;
-}
+
 
 .table {
     --bs-table-bg: transparent;

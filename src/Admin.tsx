@@ -15,6 +15,7 @@ import ManageUsers from './ManageUsers';
 import ManageGroups from './ManageGroups';
 import ManagerUserGroupAssoc from './ManageUserGroupAssoc';
 import { useNavigate } from 'react-router-dom';
+
 import './App.css';
 const Admin = () => {
     const navigate = useNavigate();
@@ -46,12 +47,7 @@ const Admin = () => {
             const groups = querySnapshot.docs.map(doc => doc.data());
             setGroupsInOrg(groups as Group[]);
         });
-        // if (selectedGroupMembershipRef.current) {
-        //     console.log("Ref is current");
-        //     //debugger;
-        //     console.log("Setting selected index to: " + selectedGroupMembershipIndex ?? 0);
-        //     (selectedGroupMembershipRef.current as any).selectedIndex = selectedGroupMembershipIndex ?? 0;
-        // }
+
     }
 
     const changeDivVis = (divName: string) => {
@@ -82,12 +78,12 @@ const Admin = () => {
 
     return (
         <>
-            <div className={`${styles.scrollableContainer} `} >
-                <div className={styles.iconContainer} onClick={(e) =>  navigate('/') }  ><i className={`material-icons ${styles.mocicon}`}>home</i><div>Home</div></div>
-                <div className={styles.iconContainer} onClick={(e) => changeDivVis("createNewUser")} ><i className={`material-icons ${styles.mocicon}`}>person</i><div>Users</div></div>
-                <div className={styles.iconContainer} onClick={(e) => changeDivVis("createNewGroup")}><i className={`material-icons ${styles.mocicon}`}>groups</i><div>Groups</div></div>
-                <div className={styles.iconContainer } onClick={(e) => changeDivVis("associateUsersAndGroups")}><i className={`material-icons ${styles.mocicon}`}>person_add_alt_1</i><div>Assign</div></div>
-                <div className={styles.iconContainer} onClick={(e) => changeDivVis("createChangeNotice")}><i className={`material-icons ${styles.mocicon}`}>keyboard_double_arrow_right</i><div>Change</div></div>
+            <div className="scrollableContainer" >
+                <div className="iconContainer" onClick={(e) =>  navigate('/') }  ><i className={`material-icons ent-icon`}>home</i><div>Home</div></div>
+                <div className="iconContainer" onClick={(e) => changeDivVis("createNewUser")} ><i className={`material-icons ent-icon`}>person</i><div>Users</div></div>
+                <div className="iconContainer" onClick={(e) => changeDivVis("createNewGroup")}><i className={`material-icons ent-icon`}>groups</i><div>Groups</div></div>
+                <div className="iconContainer" onClick={(e) => changeDivVis("associateUsersAndGroups")}><i className={`material-icons ent-icon`}>person_add_alt_1</i><div>Assign</div></div>
+                <div className="iconContainer" onClick={(e) => changeDivVis("createChangeNotice")}><i className={`material-icons ent-icon`}>keyboard_double_arrow_right</i><div>Change</div></div>
             </div>
             <hr></hr>
 

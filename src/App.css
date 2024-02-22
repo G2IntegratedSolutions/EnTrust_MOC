@@ -1,7 +1,15 @@
 :root {
-  --ent-green: #7db233;
-  --ent-blue: #005D83;
-  --ent-orange: #C24D00;
+  --ent-green: hsl(81, 49%, 49%);
+  --ent-dark-green: hsl(121, 40%, 44%);
+  --ent-blue: #295f82;
+  --ent-orange: #e77925;
+  --ent-yellow: #f6d710;
+  --ent-purple: #674677;
+  --ent-red: #cf202f;
+  --ent-light-gray: #b3b4b2
+  --ent-dark-gray: #5d6771;
+  
+  --ent-light-blue: #00b0d0;
   --secondary-color: #6c757d;
   --success-color: #28a745;
   --danger-color: #dc3545;
@@ -92,4 +100,40 @@ label {
 }
 .row {
   --bs-gutter-x:unset !important;
+}
+.ent-icon {
+  color: var(--ent-blue) !important;
+
+}
+.ent-mini-icon {
+  color: var(--ent-blue) !important;
+  font-size: 1.3em !important;
+  margin-left: 5px;
+  vertical-align: text-bottom;
+  cursor: pointer;
+}
+.ReactModal__Content {
+  background-color: rgba(200, 200, 200, .85) !important;
+  width: 300px !important;
+  height: 300px !important;
+  border-radius: 10px !important;
+  border: 1px solid var(--ent-blue) !important;
+  z-index: 1000 !important;
+  top: 50% !important;;
+  left: 50% !important;;
+  transform: translate(-50%, -50%) !important;;
+}
+.iconContainer {
+  display: inline-block;
+  margin-right: 60px !important;
+  text-align: center;
+  cursor: pointer;
+  color:var(--ent-blue)
+}
+.scrollableContainer {
+  overflow-x: auto;
+  width: 90vw;
+  white-space: nowrap;
+  margin-top: 10px;
+  margin-left:10px;
 }

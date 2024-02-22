@@ -58,8 +58,7 @@ label {
     color: var(--ent-blue) !important;
 }
 
-
-.iconContainer {
+/* .iconContainer {
     display: inline-block;
     margin-right: 60px !important;
     text-align: center;
@@ -72,7 +71,7 @@ label {
     white-space: nowrap;
     margin-top: 10px;
     margin-left:10px;
-}
+} */
 .btn {
     margin-top: 10px;
 }
