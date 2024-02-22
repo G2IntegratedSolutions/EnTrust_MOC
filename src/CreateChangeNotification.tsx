@@ -125,7 +125,7 @@ const CreateChangeNotification: React.FC = () => {
                 organization: authContext.user?.organization
             };
             const db = getFirestore();
-            const docRef = await addDoc(collection(db, 'ChangeNotifications'), cn);
+            const docRef = await addDoc(collection(db, 'changeNotifications'), cn);
             console.log('New Change Notification added with ID: ', docRef.id);
             toast.success('Change Notification successfully added!');
         } catch (error) {

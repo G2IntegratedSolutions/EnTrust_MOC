@@ -16,7 +16,7 @@ interface ManageUsersProps {
 }
 
 const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, refreshUsersInOrg }) => {
-    const [user, setUser] = useState<User>({ id: '', email: '', phone: '', organization: '', groups: [], isAdmin: false });
+    const [user, setUser] = useState<User>({ id: '', email: '', phone: '', organization: '', groups: [], firstName: '', lastName: '', isAdmin: false, isApprover: false, isCreator: false, isStakeholder: false });
     const [existingUserIndex, setExistingUserIndex] = useState<number>(0);
     const [existingUserPhone, setExistingUserPhone] = useState<string>('');
     const [existingUserEmail, setExistingUserEmail] = useState<string>('');
@@ -26,11 +26,11 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
     const authContext = useAuth();
 
     useEffect(() => {
-        if(usersInOrg.length > 0){
+        if (usersInOrg.length > 0) {
             setExistingUserIsAdmin(usersInOrg[existingUserIndex].isAdmin);
             setDeleteLinkVisible(usersInOrg[existingUserIndex].email !== authContext.user?.email);
         }
-       
+
     }, [usersInOrg]);
 
     const handleNewUserChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -44,17 +44,22 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
         e.preventDefault();
         try {
             // Create a new user in Firebase Auth based on the email address provided and a default password
-            const { email, phone, organization, groups, isAdmin } = user;
-            const password = 'defaultPassword'; 
+            const { email, phone, organization, groups, isAdmin, isApprover, isCreator, isStakeholder, firstName, lastName } = user;
+            const password = 'defaultPassword';
             await createUserWithEmailAndPassword(auth, email, password);
             console.log('User created successfully');
             // Create a new user in Cloud Firestore
             const newUser = {
                 id: generateRandomString(8),
+                firstName,
+                lastName,
                 email,
                 phone,
                 userName: email,
                 isAdmin: isAdmin,
+                isApprover: isApprover,
+                isCreator: isCreator,
+                isStakeholder: isStakeholder,
                 organization: authContext.user?.organization,
                 groups: groups,
             };
@@ -91,7 +96,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
         const q = query(usersCollectionRef, where("id", "==", idOfUserToUpdate));
         const querySnapshot = await getDocs(q);
         querySnapshot.forEach((doc) => {
-            let newDoc = {phone: newPhone, isAdmin: newIsAdmin};
+            let newDoc = { phone: newPhone, isAdmin: newIsAdmin };
             updateDoc(doc.ref, newDoc).then(() => {
                 refreshUsersInOrg();
                 toast.success('Users successfully updated!');
@@ -122,13 +127,21 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
     }
 
     return (
-        <div className={`${styles.createNewUser} mocPage` }>
+        <div className={`${styles.createNewUser} mocPage`}>
             <h2>Manage Users</h2>
             <p>On this page, you can create a new user for the EnTrust Solutions Management of Change (Moc) application or if necessary update or remove existing users.  Every user you
                 create will receive an invitation to EnTrust MoC at the email you provide.  On their first visit, each user will
                 be required to change their default password.   </p>
             <h4>Create New User</h4>
             <form className={styles.formContainer} >
+                <div className="form-group">
+                    <label className='form-label' htmlFor="firstName">First Name:</label>
+                    <input type="text" className='form-control' name="firstName" value={user.firstName} onChange={handleNewUserChange} required />
+                </div>
+                <div className="form-group">
+                    <label className='form-label' htmlFor="lastName">Last Name:</label>
+                    <input type="text" className='form-control' name="lastName" value={user.lastName} onChange={handleNewUserChange} required />
+                </div>
                 <div className="form-group">
                     <label className='form-label' htmlFor="email">Email:</label>
                     <input type="email" className='form-control' name="email" value={user.email} onChange={handleNewUserChange} required />
@@ -139,10 +152,21 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                     <InputMask mask="(999)999-9999" className='form-control' type="phone" name="phone" value={user.phone} onChange={handleNewUserChange}>
                     </InputMask>
                 </div>
-                <div className="form-group" style={{visibility: 'hidden'}}>
+                <div className="form-group" >
                     <label className='form-label' htmlFor="isAdmin">Make Administrator:</label>
                     <input type="checkbox" name="isAdmin" checked={user.isAdmin} onChange={handleNewUserChange} />
-
+                </div>
+                <div className="form-group" >
+                    <label className='form-label' htmlFor="isApprover">Make Approver:</label>
+                    <input type="checkbox" name="isApprover" checked={user.isApprover} onChange={handleNewUserChange} />
+                </div>
+                <div className="form-group" >
+                    <label className='form-label' htmlFor="isCreator">Make Creator:</label>
+                    <input type="checkbox" name="isCreator" checked={user.isCreator} onChange={handleNewUserChange} />
+                </div>
+                <div className="form-group" >
+                    <label className='form-label' htmlFor="isStakeholder">Make Stakeholder:</label>
+                    <input type="checkbox" name="isStakeholder" checked={user.isStakeholder} onChange={handleNewUserChange} />
                 </div>
                 <button className='btn btn-primary' onClick={handleNewUserSubmit}>Create User</button>
             </form>
@@ -171,27 +195,35 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                                 const phoneRegex = /^(\(\d{3}\)\d{3}-\d{4}|)$/; // This regex allows for an empty string
                                 let isValidPhone = phoneRegex.test(e.target.value)
                                 setIsPhoneValid(isValidPhone);
-                                if(isValidPhone){
-                                    
+                                if (isValidPhone) {
+
                                     console.log("Phone number valid and set to " + e.target.value)
                                 }
-                                
+
                             }}
                         >
                         </InputMask>
                     </div>
-                    <div style={{visibility: 'hidden'}}><label>Make Administrator?:</label><input type="checkbox" name="isAdmin"
-                        onChange={(e) =>
-                            {
-                                if (usersInOrg[existingUserIndex].email == authContext.user?.email) {
-                                    toast.error('You cannot change your own admin status');
-                                    return;
-                                }
-                                setExistingUserIsAdmin(e.target.checked);
-                            }}
+                    <div ><label>Make Administrator?</label><input type="checkbox" name="isAdmin"
+                        onChange={(e) => {
+                            if (usersInOrg[existingUserIndex].email == authContext.user?.email) {
+                                toast.error('You cannot change your own admin status');
+                                return;
+                            }
+                            setExistingUserIsAdmin(e.target.checked);
+                        }}
                         checked={existingUserIsAdmin}
                     /></div>
-                    <button className='btn btn-primary' disabled={!isPhoneValid}  type="submit" >Update User</button>
+                    <div ><label>Make Creator?</label><input type="checkbox" name="isCreator"
+                        checked={usersInOrg[existingUserIndex].isCreator}
+                    /></div>
+                    <div ><label>Make Approver?</label><input type="checkbox" name="isApprover"
+                        checked={usersInOrg[existingUserIndex].isApprover}
+                    /></div>
+                    <div ><label>Make Stakeholder?</label><input type="checkbox" name="isStakeholder"
+                        checked={usersInOrg[existingUserIndex].isStakeholder}
+                    /></div>
+                    <button className='btn btn-primary' disabled={!isPhoneValid} type="submit" >Update User</button>
                 </form>
             </div>
         </div>
