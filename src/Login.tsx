@@ -10,11 +10,13 @@ import 'firebase/firestore';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
+  const [availableRoles, setAvailableRoles] = useState<string[]>([]); // This will be an array of strings
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { login, user } = useAuth();
-
+  const [loggedInUserData, setLoggedInUserData]: any = useState({});
+  let loggedInUserUserID: string;
   // Initialize Firestore
   const db = getFirestore();
 
@@ -22,26 +24,58 @@ const Login: React.FC = () => {
     e.preventDefault();
     try {
       const userCred = await signInWithEmailAndPassword(auth, email, password);
-      debugger;
+      loggedInUserUserID = userCred.user.uid;
+      // ebugger;
       const usersCollectionRef = collection(db, 'Users');
       const q = query(usersCollectionRef, where("email", "==", email));
       const querySnapshot = await getDocs(q);
+      //We should only have one user with this email address
       querySnapshot.forEach((doc) => {
-        console.log(doc.data());
-        // ebugger;
-        login(email, doc.data().UserName, doc.data().isAdmin, doc.data().organization, userCred.user.uid);
-      });      
-      navigate('/');
+        setLoggedInUserData({
+          ...loggedInUserData,
+          uid: loggedInUserUserID,
+          userName: userCred.user.email,
+          organization: doc.data().organization
+        }
+        );
+
+        // Initialize an empty array
+        let roles = [];
+        // Populate the roles array
+        if (doc.data().isAdmin) {
+          roles.push('Admin');
+        }
+        if (doc.data().isApprover) {
+          roles.push('Approver');
+        }
+        if (doc.data().isCreator) {
+          roles.push('Creator');
+        }
+        if (doc.data().isStakeholder) {
+          roles.push('Stakeholder');
+        }
+        if (roles.length === 1) {
+          login(email, doc.data().UserName, doc.data().isAdmin, doc.data().isApprover, doc.data().isCreator, doc.data().isStakeholder, doc.data().organization, userCred.user.uid);
+          navigate('/');
+        }
+        if (roles.length === 0) {
+          alert("You have no roles associated with your account.  Please contact your administrator.");
+        }
+        if (roles.length > 1) {
+          //alert("You have multiple roles associated with your account.  Please choose one for this session.");
+          //add a new role to the roles array at index 0?
+          roles.unshift("Choose a role");
+          setAvailableRoles(roles);
+        }
+      });
+      //ebugger;
     } catch (error) {
       const err = error as Error;
       setError(err.message);
     }
   };
 
-  
-  
   const handleForgotPassword = () => {
-    debugger
     sendPasswordResetEmail(auth, email)
       .then(() => {
         alert("Password reset link sent!");
@@ -50,6 +84,17 @@ const Login: React.FC = () => {
         setError(error.message);
       });
   };
+
+  const handleOnChangeRole = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    //ebugger;
+    const isAdmin = e.target.value === 'Admin';
+    const isApprover = e.target.value === 'Approver';
+    const isCreator = e.target.value === 'Creator';
+    const isStakeholder = e.target.value === 'Stakeholder';
+    //ebugger;
+    login(email, loggedInUserData.userName, isAdmin, isApprover, isCreator, isStakeholder, loggedInUserData.organization, loggedInUserData.uid);
+    navigate('/');
+  }
 
   return (
     <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
@@ -73,7 +118,7 @@ const Login: React.FC = () => {
             <label htmlFor="password" className="form-label">Password</label>
             <input
               type="password"
-              className="form-control" 
+              className="form-control"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -83,7 +128,20 @@ const Login: React.FC = () => {
           <div className="mb-3 text-end">
             <a href="#" className="text-decoration-none" onClick={() => handleForgotPassword()}>Forgot Password?</a>
           </div>
-          <button type="submit" className="btn btn-primary w-100">Login</button>
+          {availableRoles.length > 0 && (
+            <div>
+              <p>Multiple roles are associated with your login.  Please choose one for this session.</p>
+              <select className="form-select" aria-label="Default select example" onChange={(e) => handleOnChangeRole(e)} >
+                {availableRoles.map((role, index) => (
+                  <option key={index} value={role}>
+                    {role}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <button type="submit" className="btn btn-primary w-100" onClick={(e) => handleLogin}>Login</button>
         </form>
       </div>
     </div>
