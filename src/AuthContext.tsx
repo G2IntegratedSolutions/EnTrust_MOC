@@ -4,6 +4,9 @@ type User = {
   email: string;
   userName: string;
   isAdmin: boolean;
+  isApprover: boolean;
+  isCreator: boolean;
+  isStakeholder: boolean;
   organization: string;
   uid: string;
 };
@@ -11,7 +14,7 @@ type User = {
 type AuthContextType = {
   isAuthenticated: boolean;
   user: User | null;
-  login: (email: string, userName: string, isAdmin:boolean, organization: string, uid: string) => void;
+  login: (email: string, userName: string, isAdmin: boolean, isApprover: boolean, isCreator: boolean, isStakeholder: boolean, organization: string, uid: string) => void;
   logout: () => void;
 };
 
@@ -25,9 +28,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
 
-  const login = (email: string, userName: string, isAdmin: boolean, organization: string, uid:string) => {
-    setIsAuthenticated(true);
-    setUser({ email, userName, isAdmin, organization, uid });
+  const login = (email: string, userName: string, isAdmin: boolean, isApprover: boolean, isCreator: boolean, isStakeholder: boolean, organization: string, uid: string) => {
+    //When setUser is called, only one of isAdmin, isApprover, isCreator, or isStakeholder will be true
+    //Even if the user has multiple roles, they must choose just one role for this session. 
+    let roleCount = 0;
+    if (isAdmin){ roleCount++;}
+    if (isApprover) { roleCount++;}
+    if (isCreator){ roleCount++;}
+    if (isStakeholder){ roleCount++;}
+    //ebugger;
+    if (roleCount === 1) {
+      setIsAuthenticated(true);
+      setUser({ email, userName, isAdmin, isApprover, isCreator, isStakeholder, organization, uid });
+    } else {
+      setIsAuthenticated(false);
+      setUser(null);
+      alert("You must choose one role for this session.");
+    }
   };
 
   const logout = () => {
