@@ -44,6 +44,16 @@ const HomePage: React.FC = () => {
                             </div>
                         )}
                     </div>
+                    <div className="col-lg-4">
+
+                            <div className={`${styles.box} ${styles.orange}`}>
+                                <Link to="/admin">
+                                    <h3>UNSAFE Administration</h3>
+                                    <p>Creating users and groups should be blocked on the server!</p>
+                                </Link>
+                            </div>
+
+                    </div>
                 </div>
 
             </div>

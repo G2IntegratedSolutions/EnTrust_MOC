@@ -21,13 +21,15 @@ const Login: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCred = await signInWithEmailAndPassword(auth, email, password);
+      debugger;
       const usersCollectionRef = collection(db, 'Users');
       const q = query(usersCollectionRef, where("email", "==", email));
       const querySnapshot = await getDocs(q);
       querySnapshot.forEach((doc) => {
         console.log(doc.data());
-        login(email, doc.data().UserName, doc.data().isAdmin, doc.data().organization);
+        // ebugger;
+        login(email, doc.data().UserName, doc.data().isAdmin, doc.data().organization, userCred.user.uid);
       });      
       navigate('/');
     } catch (error) {

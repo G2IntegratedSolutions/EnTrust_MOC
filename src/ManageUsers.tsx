@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import { generateRandomString } from './common';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from './firebaseConfig';
+import { setDoc } from 'firebase/firestore'; // Import the missing setDoc function
 
 interface ManageUsersProps {
     usersInOrg: User[];
@@ -46,26 +47,27 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
             // Create a new user in Firebase Auth based on the email address provided and a default password
             const { email, phone, organization, groups, isAdmin, isApprover, isCreator, isStakeholder, firstName, lastName } = user;
             const password = 'defaultPassword';
-            await createUserWithEmailAndPassword(auth, email, password);
+            const newUserCreds = await createUserWithEmailAndPassword(auth, email.toLowerCase(), password);
             console.log('User created successfully');
             // Create a new user in Cloud Firestore
             const newUser = {
                 id: generateRandomString(8),
                 firstName,
                 lastName,
-                email,
+                email:email.toLowerCase(),
                 phone,
-                userName: email,
+                userName: email.toLowerCase(),
                 isAdmin: isAdmin,
                 isApprover: isApprover,
                 isCreator: isCreator,
                 isStakeholder: isStakeholder,
                 organization: authContext.user?.organization,
-                groups: groups,
+                groups: ['NONE'],
             };
             const db = getFirestore();
-            const docRef = await addDoc(collection(db, 'Users'), newUser);
-            console.log('New user added with ID: ', docRef.id);
+            const usersCollectionRef = collection(db, 'Users');
+            await setDoc(doc(usersCollectionRef, newUserCreds?.user.uid), newUser);
+            debugger;
             refreshUsersInOrg();
             setExistingUserPhone('');
             toast.success('User successfully added!');
@@ -79,7 +81,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
         const newIndex = (e.target as unknown as HTMLSelectElement).selectedIndex
         setExistingUserIndex(newIndex);
         setExistingUserIsAdmin(usersInOrg[newIndex].isAdmin);
-        setDeleteLinkVisible(usersInOrg[newIndex].email !== authContext.user?.email);
+        setDeleteLinkVisible(usersInOrg[newIndex].email.toLowerCase() !== authContext.user?.email.toLowerCase());
     };
 
     const handleExistingUserUpdateSubmit = async (e: FormEvent) => {
@@ -110,7 +112,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
     const deleteExistingUser = async () => {
         let currentUser = usersInOrg[existingUserIndex];
         const idOfUserToDelete = currentUser.id;
-        const emailOfUserToDelete = currentUser.email;
+        const emailOfUserToDelete = currentUser.email.toLowerCase();
         const db = getFirestore();
         // delete the user in the database with the id of the user to delete using a query
         const usersCollectionRef = collection(db, 'Users');
@@ -173,7 +175,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
             <hr></hr>
             <h4>Update/Remove Existing User</h4>
             {deleteLinkVisible && <span onClick={deleteExistingUser} className={styles.deleteSelected}>Remove this User</span>}
-            <div className='form-label'>Existing User's Email:</div>
+            <div className='form-label'>Select Existing User's Email:</div>
             <select className='form-control' onChange={handlExistingUserChange}>
                 {usersInOrg.map((userInOrg, index) => (
                     <option key={index} value={userInOrg.email}>{userInOrg.email}</option>
@@ -204,6 +206,12 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                         >
                         </InputMask>
                     </div>
+                    <div ><label>First Name</label><input className='form-control' type="text" name="firstName"
+                        value={usersInOrg?.[existingUserIndex]?.firstName || ''}
+                    /></div>
+                    <div ><label>Last Name</label><input className='form-control' type="text" name="lastName"
+                        value={usersInOrg?.[existingUserIndex]?.lastName || ''}
+                    /></div>
                     <div ><label>Make Administrator?</label><input type="checkbox" name="isAdmin"
                         onChange={(e) => {
                             if (usersInOrg[existingUserIndex].email == authContext.user?.email) {
@@ -215,13 +223,13 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                         checked={existingUserIsAdmin}
                     /></div>
                     <div ><label>Make Creator?</label><input type="checkbox" name="isCreator"
-                        checked={usersInOrg[existingUserIndex].isCreator}
+                        checked={usersInOrg?.[existingUserIndex]?.isCreator || false}
                     /></div>
                     <div ><label>Make Approver?</label><input type="checkbox" name="isApprover"
-                        checked={usersInOrg[existingUserIndex].isApprover}
+                        checked={usersInOrg?.[existingUserIndex]?.isApprover || false}
                     /></div>
                     <div ><label>Make Stakeholder?</label><input type="checkbox" name="isStakeholder"
-                        checked={usersInOrg[existingUserIndex].isStakeholder}
+                        checked={usersInOrg?.[existingUserIndex]?.isStakeholder || false}
                     /></div>
                     <button className='btn btn-primary' disabled={!isPhoneValid} type="submit" >Update User</button>
                 </form>
