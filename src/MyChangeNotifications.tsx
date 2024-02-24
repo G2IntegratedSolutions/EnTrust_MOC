@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './MyChangeNotifications.css';
 import './App.css';
@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import ChangeNotificationDetailForm from './ChangeNotficiationDetailForm';
 
 const MyChangeNotifications = () => {
+    const scrollableContainerRef = useRef(null);
     const navigate = useNavigate();
     const columns = ['MOC#', 'Status', 'Date of Creation', 'Date of Publication', 'Change Type', 'Time', 'Change Topic', 'Groups', 'Short Description', 'Long Description', 'Impacts', 'Required Date of Completion', 'Notes', 'Attachments'];
     const columnWidths = [100, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200]; // Adjust these values as needed
@@ -16,9 +17,15 @@ const MyChangeNotifications = () => {
     //const sampleCNs: string[][] =  [sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData];
     const [selectedRow, setSelectedRow] = useState(0);
     const [activeCN, setActiveCN] = useState<ChangeNotification | null>(null);
+    //The icons in order are (0) Search 91) Create (2) Acknowledge (3) Edit (4) Accept (5) Reject (6) Re-Schedule (7) Archive (8) Email (9) Notify
+    const [iconDisplayState, setIconDisplayState] = useState<number[]>([.3, .3, .3, .3, .3, .3, .3, .3, .3, .3, .3, .3, .3])
     const authContext = useAuth();
     const [selectedUserEmail, setSelectedUserEmail] = useState(authContext.user?.email);
     const [cnsForThisUser, setCnsForThisUser] = useState<ChangeNotification[]>([]);
+
+    useEffect(() => {
+        console.log('selectedRow:', selectedRow);
+    }, [cnsForThisUser, selectedRow]);
 
     useEffect(() => {
         // This code will be executed whenever selectedUserEmail changes
@@ -62,6 +69,26 @@ const MyChangeNotifications = () => {
         }
     }, []);
 
+    const displayState = (icon: string): string => {
+
+        if (icon === "create" && authContext.user?.isCreator == true) {
+            return "unset";
+        }
+        if (cnsForThisUser.length == 0) {
+            return ".3"
+        }
+        if (icon === "find") {
+            return "unset";
+        }
+        if (icon === "acknowledge" && authContext.user?.isStakeholder == true) {
+            return "unset";
+        }
+        if (icon === "edit" && (authContext.user?.isApprover == true || authContext.user?.isCreator) == true) {
+            return "unset";
+        }
+        return ".3";
+    }
+
     const handleRowClick = (index: number) => {
         console.log('Row clicked:', index);
         setActiveCN(cnsForThisUser[index]);
@@ -100,22 +127,29 @@ const MyChangeNotifications = () => {
         );
     }
 
+    const onHandleSetIconDisplayState = (icon: string, state: boolean) => {
+        let newState = [...iconDisplayState];
+        newState[4] = 1
+        setIconDisplayState(newState)
+    }
     return (
         <>
-        <i className="material-icons ent-icon home-icon" onClick={() => navigate(-1)}>home</i>
-            {cnsForThisUser.length > 0 ? (
-                <div className="scrollableContainer" >
-                    <div className="iconContainer" onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon`}>search</i><div>Search</div></div>
-                    <div className="iconContainer" onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon`}>star</i><div>Acknowledge</div></div>
-                    <div className="iconContainer" onClick={(e) => navigate('/')} ><i className={`material-icons ent-icon`}>edit</i><div>Edit</div></div>
-                    <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>done</i><div>Accept</div></div>
-                    <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>delete</i><div>Reject</div></div>
-                    <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>calendar_month</i><div>Re-Schedule</div></div>
-                    <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>archive</i><div>Archive</div></div>
-                    <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>email</i><div>Email</div></div>
-                    <div className="iconContainer" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>notifications</i><div>Notifications</div></div>
+            {cnsForThisUser.length > 0 || authContext.user?.isCreator == true ? (
+                <div className="scrollableContainer" ref={scrollableContainerRef} >
+                    <div className="iconContainer ent-requires-selection"  onClick={() => navigate(-1)} ><i className={`material-icons ent-icon`}>home</i><div>Back</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[0] }} onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon`}>search</i><div>Search</div></div>
+                    <div className="iconContainer" style={{ opacity: iconDisplayState[1] }} onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon`}>create</i><div>Create CN</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[2] }} onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon`}>star</i><div>Acknowledge</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[3] }} onClick={(e) => navigate('/')} ><i className={`material-icons ent-icon`}>edit</i><div>Edit</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[4] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>done</i><div>Accept</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[5] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>delete</i><div>Reject</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[6] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>calendar_month</i><div>Re-Schedule</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[7] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>archive</i><div>Archive</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[8] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>email</i><div>Email</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[9] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>notifications</i><div>Notifications</div></div>
                 </div>
             ) : <></>}
+            <hr></hr>
             <div className='mocPage'>
                 <h2>My Change Notifications</h2>
 
@@ -145,6 +179,7 @@ const MyChangeNotifications = () => {
                 </hr>
 
                 <ChangeNotificationDetailForm changeNotice={activeCN}></ChangeNotificationDetailForm>
+                <button className='btn btn-primary' onClick={() => navigate(-1)}>Back</button>
             </div>
         </>
     );

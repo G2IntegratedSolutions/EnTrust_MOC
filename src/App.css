@@ -134,15 +134,23 @@ label {
 }
 .iconContainer {
   display: inline-block;
-  margin-right: 60px !important;
+  margin-right: 0px !important;
   text-align: center;
   cursor: pointer;
-  color:var(--ent-blue)
+  color:var(--ent-blue);
+  border-right: 1px solid #cccccc;
+  border-top: 1px solid #cccccc;
+  border-bottom: 1px solid #cccccc; ;
+  padding: 15px;
+  background-color: #f8f9fa;
 }
 .scrollableContainer {
   overflow-x: auto;
-  width: 90vw;
+  width: 100%;
   white-space: nowrap;
   margin-top: 10px;
-  margin-left:10px;
+
+}
+.ent-home-button{
+  padding:10px;
 }
