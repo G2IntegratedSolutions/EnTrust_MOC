@@ -4,13 +4,17 @@ import { ChangeNotification } from './Interfaces';
 import { useAuth } from './AuthContext';
 import { Group, User } from './Interfaces'
 import { generateRandomString } from './common';
-import { getFirestore, collection, query, where, getDocs } from '@firebase/firestore';
+import { getFirestore, collection, query, where, getDocs, addDoc } from '@firebase/firestore';
 import { toast } from 'react-toastify';
+import mapImage from './assets/map.png';
 import ModalComponent from './ModalComponent';
+import { map } from '@firebase/util';
+import { assertQualifiedTypeIdentifier } from '@babel/types';
 
 interface ChangeNotificationDetailFormProps {
     changeNotice: ChangeNotification | null;
     isNewCN: boolean;
+    setShowDetailForm: (showDetailForm: boolean) => void;
 }
 
 const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps | null> = (props) => {
@@ -22,64 +26,114 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
         setCN(props?.changeNotice ?? null);
     }, [props?.changeNotice?.creator]);
 
+    const hideFieldsForNew = false;
     const timeStamp = Date.now();
     const date = new Date(timeStamp);
     const year = date.getFullYear();
     const month = ("0" + (date.getMonth() + 1)).slice(-2); // Months are 0-indexed in JavaScript
     const day = ("0" + date.getDate()).slice(-2);
     const formattedDate = `${year}-${month}-${day}`;
-    const [dateOfCreation, setDateOfCreation] = useState(formattedDate);
-    const [cnState, setCNState] = useState('PENDING CREATE'); // [ 'Approved', 'Rejected', 'Under Review', 'Activated', 'Completed', 'Archived'
     const [approvers, setApprovers] = useState<string[]>([]);
-    const [selectedApprover, setSelectedApprover] = useState<string>('');
+    const [selectedChangeCategory, setSelectedChangeCategory] = useState('');
+
+    // Change Notification Form State
+    const [mocNumber, setMocNumber] = useState('');
+    const [creator, setCreator] = useState('');
+    const [owner, setOwner] = useState('');
+    const [approver, setApprover] = useState('');
+    const [shortReasonForChange, setShortReasonForChange] = useState('');
+    const [groups, setGroups] = useState<string[]>([]);
+    const [cnState, setCNState] = useState('CREATE'); // [ 'Approved', 'Rejected', 'Under Review', 'Activated', 'Completed', 'Archived'
+    const [changeTopic, setChangeTopic] = useState('');
+    const [dateOfCreation, setDateOfCreation] = useState(formattedDate);
     const [dateOfPublication, setDateOfPublication] = useState(formattedDate);
     const [timeOfImplementation, setTimeOfImplementation] = useState('12:00');
+    const [requiredDateOfCompletion, setRequiredDateOfCompletion] = useState(formattedDate);
+    const [category, setCategory] = useState('');
     const [changeType, setChangeType] = useState('');
-    const [changeTopic, setChangeTopic] = useState('');
-    const [groups, setGroups] = useState<string[]>([]);
-    const [shortReasonForChange, setShortReasonForChange] = useState('');
     const [descriptionOfChange, setDescriptionOfChange] = useState('');
     const [impacts, setImpacts] = useState('');
     const [location, setLocation] = useState('');
-    const [requiredDateOfCompletion, setRequiredDateOfCompletion] = useState('');
     const [notes, setNotes] = useState('');
-    const [attachments, setAttachments] = useState<File[]>([]);
-    const [status, setStatus] = useState('Pending Approval');
+    const [attachments, setAttachments] = useState('');
+
+
     const authContext = useAuth();
-    const [mocNumber, setMocNumber] = useState();
     const changeCategories = ['Safety', 'Quality', 'Production', 'Facilities', 'IT', 'HR', 'Finance', 'Other'];
     const [groupsForOrganization, setGroupsForOrganization] = useState<string[]>([]); // Update the type of initial state
-    const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
-    const [selectedChangeCategory, setSelectedChangeCategory] = useState('');
+    //const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
     const [infoContent, setInfoContent] = useState('');
     const [infoHeader, setInfoHeader] = useState('');
     const [modalIsOpen, setModalIsOpen] = useState(false);
+    const [mapModalIsOpen, setMapModalIsOpen] = useState(false);
+    const [mapSource, setMapSource] = useState<string>();
 
     useEffect(() => {
-        console.log('useEffect');
-        getApprovers();
+        let theMocNumber: string = '';
+        let theCreator: string = '';
+        let theOwner: string = '';
+        let theApprover: string = '';
+        if (props?.isNewCN) {
+            theMocNumber = generateRandomString(10);
+            theCreator = authContext.user?.userName ? authContext.user?.userName : '';
+            theOwner = theCreator;
+            theApprover = 'UNSET';
+        }
+        else {
+            theMocNumber = cn?.mocNumber ? cn?.mocNumber : '';
+            theCreator = cn?.creator ? (authContext.user?.userName || '') : '';
+            theOwner = getLastInArray(cn, 'owner')
+            theApprover = getLastInArray(cn, 'approver');
+        }
+        setMocNumber(theMocNumber);
+        setCreator(theCreator);
+        setOwner(theOwner)
+        setApprover(theApprover);
+
+        // debugger;
+        // getApprovers();
         getGroupsForOrganization()
     }, []);
+
+    interface ChangeNotification {
+        [key: string]: any;
+    }
+
+    const getLastInArray = (cn: ChangeNotification|null, cnPropName: string): string => {
+        if(!cn) return '';
+        const array = cn[cnPropName];
+        if (Array.isArray(array) && array.length > 0) {
+            return array[array.length - 1];
+        }
+        return ''
+    };
 
     const handleInfoClick = (id: string) => {
         setInfoContent("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut nisl a ligula eleifend finibus non quis justo. Duis eu interdum nulla. Nullam mollis leo vestibulum, rhoncus nulla in, interdum magna. Morbi in metus sit amet ligula tempus pharetra. Sed ac urna quis sapien maximus fermentum. Nunc velit dui, finibus in ultrices in, blandit eget massa. Praesent in mi faucibus, posuere nisl ut, pulvinar urna. In hac habitasse platea dictumst. Nam aliquet convallis augue id dignissim. Maecenas ac congue mauris.");
         setInfoHeader(id);
+        setMapSource('');
         console.log("setting modelisOpen to true")
         setModalIsOpen(true);
+    };
+
+    const showMap = () => {
+        setInfoContent("");
+        setInfoHeader("MAP");
+        setMapSource(mapImage);
+        setModalIsOpen(true);
+
     };
 
     const setRandomTime = () => {
         const hours = Math.floor(Math.random() * 24);
         const minutes = Math.floor(Math.random() * 60);
         const randomTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-
         setTimeOfImplementation(randomTime);
     };
     const getRandomDate = () => {
         const start = new Date(2022, 0, 1); // Start date (January 1, 2022)
         const end = new Date(); // End date (today)
         const randomDate = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-
         return randomDate;
     };
     const generateRandomGeoJSON = () => {
@@ -126,7 +180,20 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
 
     }
 
+    // When groups are checked on and off we need to update the groups array which contains the selected groups for this CN
     const handleCheckboxChange = (e: ChangeEvent<HTMLInputElement>, groupName: string) => {
+        let currentGroups = groups;
+        if(e.target.checked) {
+            if(!currentGroups.includes(groupName)) {
+                currentGroups.push(groupName);
+            }
+        }
+        else{
+            currentGroups = currentGroups.filter(group => group !== groupName);
+        }
+        setGroups(currentGroups);
+        console.log('Groups:', groups);
+        // ebugger;
 
     }
 
@@ -141,7 +208,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                 const user = doc.data() as User;
                 approvers.push(user.email);
             });
-            setApprovers(approvers);
+            //setApprovers(approvers);
         });
     };
 
@@ -160,6 +227,52 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
         });
     };
 
+    const formatCnField = (newValue: string): { timeStamp: number, value: string }[] => {
+        return [{
+            timeStamp: Date.now(),
+            value: newValue,
+        }];
+    };
+
+    const handleCreateCN = async (e: FormEvent) => {
+        e.preventDefault();
+        try {
+            const cn = {
+                mocNumber:
+                creator,
+                owner:formatCnField(owner),
+                approver:formatCnField(approver),
+                shortReasonForChange:formatCnField(shortReasonForChange),
+                groups:formatCnField(groups.join('|')),
+                cnState:formatCnField(cnState),
+                changeTopic:formatCnField(changeTopic),
+                dateOfCreation:formatCnField(dateOfCreation),
+                dateOfPublication:formatCnField(dateOfPublication),
+                timeOfImplementation:formatCnField(timeOfImplementation),
+                requiredDateOfCompletion:formatCnField(requiredDateOfCompletion),
+                category:formatCnField(category),
+                changeType:formatCnField(changeType),
+                descriptionOfChange:formatCnField(descriptionOfChange),
+                impacts:formatCnField(impacts),
+                location:formatCnField(location),
+                notes:formatCnField(notes),
+                attachments:formatCnField(attachments),
+                organization: authContext?.user?.organization,
+
+            };
+            // ebugger;
+            //return;
+            const db = getFirestore();
+            const docRef = await addDoc(collection(db, 'changeNotifications'), cn);
+            console.log('New Change Notification added with ID: ', docRef.id);
+            toast.success('Change Notification successfully added!');
+            props?.setShowDetailForm(false);
+        } catch (error) {
+            console.error('Error creating Change Notification:', error);
+            toast.error('Error creating Change Notification: ' + error);
+        }
+    }
+
     return (
         <div>
             <ModalComponent
@@ -167,44 +280,55 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                 onRequestClose={() => setModalIsOpen(false)}
                 contentLabel="Example Modal"
                 infoContent={infoContent}
+                imgSrc={mapSource}
                 infoHeader={infoHeader}
             />
+
             <form >
-                <div className="mb-3">
+                <div className="mb-3" style={{ display: props?.isNewCN && hideFieldsForNew ? 'none' : 'unset' }}>
                     <label htmlFor="mocNumber" className="form-label">MoC Number (ID)</label>
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Moc Number')}>info</i>
                     <input
                         type="text"
                         className="form-control"
                         id="mocNumber"
-                        value={cn?.id === null ? mocNumber : generateRandomString(10)}
+                        value={mocNumber}
                         disabled
                     />
                 </div>
-                <div className="mb-3">
+                <div className="mb-3" style={{ display: props?.isNewCN  && hideFieldsForNew ? 'none' : 'unset' }}>
                     <label htmlFor="createdBy" className="form-label">Created By</label>
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Created By')}>info</i>
                     <input
                         type="text"
                         className="form-control"
                         id="createdBy"
-                        value={props?.isNewCN ? authContext.user?.userName : cn?.creator}
+                        value={creator}
                         disabled
                     />
                 </div>
-                <div className="mb-3" style={{ display: props?.isNewCN ? 'none' : 'unset' }}>
+                <div className="mb-3" style={{ display: props?.isNewCN  && hideFieldsForNew? 'none' : 'unset' }}>
                     <label htmlFor="owner" className="form-label">Owner</label>
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Owner')}>info</i>
                     <input
                         type="text"
                         className="form-control"
-                        id="owner"
-                        value={cn?.owner}
+                        value={owner}
                         disabled
                     />
                 </div>
-                <div className="mb-3" >
-                    <label htmlFor="approver" className="form-label">Approver</label>
+                <div className="mb-3" style={{ display: props?.isNewCN  && hideFieldsForNew? 'none' : 'unset' }}>
+                    <label htmlFor="owner" className="form-label">Approver</label>
+                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Approver')}>info</i>
+                    <input
+                        type="text"
+                        className="form-control"
+                        value={approver}
+                        disabled
+                    />
+                </div>
+                {/* <div className="mb-3" style={{ display: props?.isNewCN  && hideFieldsForNew? 'none' : 'unset' }}>
+                    <label htmlFor="approver" className="form-label" >Approver</label>
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Approver')}>info</i>
                     <select className='form-control'>
                         {approvers.map((approver, index) => {
@@ -215,7 +339,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                             );
                         })}
                     </select>
-                </div>
+                </div> */}
                 <div className="mb-3">
                     <label htmlFor="shortReasonForChange" className="form-label">Short Reason For Change</label>
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Short Description')}>info</i>
@@ -227,7 +351,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                         id="shortReasonForChange" />
                 </div>
                 <div className="mb-3">
-                    <label htmlFor="groups" className="form-label">Groups</label>
+                    <label htmlFor="groups" className="form-label">Assgined Groups</label>
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Groups')}>info</i>
                     <div id="groups">
                         {groupsForOrganization.map((groupName, index) => {
@@ -247,7 +371,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                         })}
                     </div>
                 </div>
-                <div className="mb-3">
+                <div className="mb-3" style={{ display: props?.isNewCN  && hideFieldsForNew? 'none' : 'unset' }}>
                     <label htmlFor="state" className="form-label">State of Change Notification</label>
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('State')}>info</i>
                     <input
@@ -314,7 +438,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                     <label htmlFor="category" className="form-label">Category</label>
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Category')}>info</i>
                     <select className='form-control'
-                        value={cn?.category}
+                        value={category}
                         onChange={(e) => setSelectedChangeCategory(e.target.value)}>
                         {changeCategories.map((cat, index) => (
                             <option key={index} value={cat}>{cat}</option>
@@ -358,6 +482,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                         className="form-control"
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
+                        onClick={() => showMap()}
                     />
                 </div>
                 <div className="mb-3">
@@ -379,12 +504,12 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                         id="attachments"
                         onChange={(e) => {
                             const file = e.target.files?.[0];
-                            setAttachments(file ? [file] : []);
+                            setAttachments('');
                         }}
                     />
                 </div>
             </form>
-            <button className="btn btn-primary" >Create CN</button>
+            <button className="btn btn-primary" onClick={handleCreateCN} >Create Change Notification</button>
         </div>
 
     );

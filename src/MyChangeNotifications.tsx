@@ -11,8 +11,8 @@ import ChangeNotificationDetailForm from './ChangeNotficiationDetailForm';
 const MyChangeNotifications = () => {
     const scrollableContainerRef = useRef(null);
     const navigate = useNavigate();
-    const columns = ['MOC#', 'Status', 'Date of Creation', 'Date of Publication', 'Change Type', 'Time', 'Change Topic', 'Groups', 'Short Description', 'Long Description', 'Impacts', 'Required Date of Completion', 'Notes', 'Attachments'];
-    const columnWidths = [100, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200]; // Adjust these values as needed
+    const columns = ['MOC#', 'Creator','Owner', 'Approver', 'Short Description', 'Groups', 'State', 'Topic', 'Creation Date', 'Publication Date', 'Time of Implementation', 'Required Date', 'Category', 'Change Type', 'Long Description', 'Impacts', 'Location', 'Notes', 'Attachments']
+    const columnWidths = [100, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200,200,200,200,200,200,200]; // Adjust these values as needed
 
     const [selectedRows, setSelectedRows] = useState<number[]>([]);
     const [activeCN, setActiveCN] = useState<ChangeNotification | null>(null);
@@ -142,21 +142,25 @@ const MyChangeNotifications = () => {
 
     const renderRow = (cn: ChangeNotification, rowIndex: number) => {
         const rowDataArray = [
-            cn.id,
-            cn.creator
-            // cn.mocNumber,
-            // cn.status,
-            // cn.dateOfCreation,
-            // cn.dateOfPublication,
-            // cn.type,
-            // cn.timeOfImplementation,
-            // cn.topic,
-            // cn.groupNames,
-            // cn.shortReasonForChange,
-            // cn.descriptionOfChange,
-            // cn.impacts,
-            // cn.requiredDateOfCompletion,
-            // cn.notes
+            cn.mocNumber,
+            cn.creator,
+            cn.owner,
+            cn.approver,
+            cn.shortReasonForChange,
+            cn.groups,
+            cn.cnState,
+            cn.changeTopic,
+            cn.dateOfCreation,
+            cn.dateOfPublication,
+            cn.timeOfImplementation,
+            cn.requiredDateOfCompletion,
+            cn.category,
+            cn.changeType,
+            cn.descriptionOfChange,
+            cn.impacts,
+            cn.location,
+            cn.notes,
+            cn.attachments
         ];
         // ebugger;
         return (
@@ -191,16 +195,21 @@ const MyChangeNotifications = () => {
                 <div className="scrollableContainer" ref={scrollableContainerRef} >
                     <div className="iconContainer ent-requires-selection" onClick={() => navigate(-1)} ><i className={`material-icons ent-icon`}>home</i><div>Back</div></div>
                     <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[0] }} onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon ent-purple`}>search</i><div>Search</div></div>
-                    <div className="iconContainer" style={{ opacity: iconDisplayState[1] }} onClick={(e) => onCreateChangeNotification()}  ><i className={`material-icons ent-icon ent-dark-yellow`}>edit_square</i><div>Create CN</div></div>
+                    <div className="iconContainer" style={{ opacity: iconDisplayState[1] }} onClick={(e) => onCreateChangeNotification()}  ><i className={`material-icons ent-icon ent-orange`}>edit_square</i><div>Create CN</div></div>
                     <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[2] }} onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon ent-green`}>star</i><div>Acknowledge</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[3] }} onClick={(e) => navigate('/')} ><i className={`material-icons ent-icon ent-orange`}>edit</i><div>Edit</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[4] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>done</i><div>Accept</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[5] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-red`}>delete</i><div>Reject</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[6] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-dark-yellow`}>calendar_month</i><div>Re-Schedule</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[7] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-purple`}>archive</i><div>Archive</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[8] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-orange`}>email</i><div>Email</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[2] }} onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon ent-blue`}>send</i><div>Seek Approval</div></div> 
+
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[4] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>done</i><div>Accept CN</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[5] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-red`}>delete</i><div>Reject CN</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[3] }} onClick={(e) => navigate('/')} ><i className={`material-icons ent-icon ent-orange`}>edit</i><div>Request Edit</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[6] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-blue`}>calendar_month</i><div>Reschedule CN</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[6] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>pause</i><div>Pause CN</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[6] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-red`}>cancel</i><div>Cancel CN</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[6] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>done_all</i><div>Complete CN</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[7] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-purple`}>archive</i><div>Archive CN</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[8] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-orange`}>email</i><div>Send Emails</div></div>
                     <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[9] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>notifications</i><div>Notifications</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[9] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-red`}>emoji_people</i><div>Object</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[9] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-red`}>emoji_people</i><div>Object to CN</div></div>
                 </div>
             ) : <></>}
             <hr></hr>
@@ -237,7 +246,7 @@ const MyChangeNotifications = () => {
                         </hr>
                     </>
                 }
-                {showDetailForm && <ChangeNotificationDetailForm isNewCN={isNewCN} changeNotice={activeCN}></ChangeNotificationDetailForm>
+                {showDetailForm && <ChangeNotificationDetailForm isNewCN={isNewCN} changeNotice={activeCN} setShowDetailForm={setShowDetailForm}></ChangeNotificationDetailForm>
                 }
 
             </div>

@@ -158,6 +158,9 @@ label {
   vertical-align: text-bottom;
   cursor: pointer;
 }
+.modalMap{
+  position:absolute;
+}
 .ReactModal__Content {
   background-color: rgba(200, 200, 200, .85) !important;
   width: 300px !important;
@@ -169,6 +172,7 @@ label {
   left: 50% !important;;
   transform: translate(-50%, -50%) !important;;
 }
+
 .iconContainer {
   display: inline-block;
   margin-right: 0px !important;
@@ -178,15 +182,15 @@ label {
   border-right: 1px solid #cccccc;
   border-top: 1px solid #cccccc;
   border-bottom: 1px solid #cccccc; ;
-  padding: 15px;
+  padding: 10px;
   background-color: #f8f9fa;
+  width:80px;
+  font-size:10px
 }
 .scrollableContainer {
   overflow-x: auto;
   width: 100%;
   white-space: nowrap;
-  margin-top: 10px;
-
 }
 .ent-home-button{
   padding:10px;

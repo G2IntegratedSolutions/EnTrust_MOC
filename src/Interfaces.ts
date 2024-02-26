@@ -23,13 +23,14 @@ export interface User {
 // 'Notes', 'Attachments'];
 // [safety quality production, facilities, IT, HR, finance, other]
 export interface ChangeNotification {
-    id: string
+    [key: string]: any;
+    mocNumber: string
     creator:string,
     owner: string[], 
-    approvers: string[],
+    approver: string[],
     shortReasonForChange: string[],
-    groupIDs: string[][],
-    state: string[],
+    groups: string[],
+    cnState: string[],
     changeTopic: string[],  
     dateOfCreation: string[],
     dateOfPublication: string[],
@@ -42,6 +43,7 @@ export interface ChangeNotification {
     location: string[],	
     notes: string[],
     attachments: string[],
+    organization: string,
     onCreatedNotes: string[],
     onUnderReviewNotes: string[],
     onApprovedNotes: string[],
