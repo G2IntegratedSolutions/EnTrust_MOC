@@ -13,19 +13,63 @@ const MyChangeNotifications = () => {
     const navigate = useNavigate();
     const columns = ['MOC#', 'Status', 'Date of Creation', 'Date of Publication', 'Change Type', 'Time', 'Change Topic', 'Groups', 'Short Description', 'Long Description', 'Impacts', 'Required Date of Completion', 'Notes', 'Attachments'];
     const columnWidths = [100, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200]; // Adjust these values as needed
-    //const sampleData = ['Sample 1', 'Sample 2', 'Sample 3', 'Sample 4', 'Sample 5', 'Sample 6', 'Sample 7', 'Sample 8', 'Sample 9', 'Sample 10', 'Sample 11', 'Sample 12'];
-    //const sampleCNs: string[][] =  [sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData, sampleData];
-    const [selectedRow, setSelectedRow] = useState(0);
+
+    const [selectedRows, setSelectedRows] = useState<number[]>([]);
     const [activeCN, setActiveCN] = useState<ChangeNotification | null>(null);
     //The icons in order are (0) Search 91) Create (2) Acknowledge (3) Edit (4) Accept (5) Reject (6) Re-Schedule (7) Archive (8) Email (9) Notify
     const [iconDisplayState, setIconDisplayState] = useState<number[]>([.3, .3, .3, .3, .3, .3, .3, .3, .3, .3, .3, .3, .3])
     const authContext = useAuth();
     const [selectedUserEmail, setSelectedUserEmail] = useState(authContext.user?.email);
     const [cnsForThisUser, setCnsForThisUser] = useState<ChangeNotification[]>([]);
+    const [showDetailForm, setShowDetailForm] = useState(false);
+    const [isNewCN, setIsNewCN] = useState(false);
 
     useEffect(() => {
-        console.log('selectedRow:', selectedRow);
-    }, [cnsForThisUser, selectedRow]);
+        // console.log('selectedRow:', selectedRows[0]);
+        //The icons in order are (0) Search (1) Create (2) Acknowledge (3) Edit 
+        // (4) Accept (5) Reject (6) Re-Schedule (7) Archive (8) Email (9) Notify
+
+        let newOpacityArray = [.3, .3, .3, .3, .3, .3, .3, .3, .3, .3, .3, .3, .3];
+
+        // Creators can create
+        if (authContext.user?.isCreator == true) {
+            newOpacityArray[1] = 1;
+        }
+        // Stakeholders can acknowledge
+        if (authContext.user?.isStakeholder == true && selectedRows.length === 1) {
+            newOpacityArray[1] = 1;
+        }
+        // Approvers and Creators can edit
+        if ((authContext.user?.isApprover == true || authContext.user?.isCreator) == true && selectedRows.length === 1) {
+            newOpacityArray[3] = 1;
+        }
+        // Approvers can accept
+        if (authContext.user?.isApprover == true && selectedRows.length === 1) {
+            newOpacityArray[4] = 1;
+        }
+        // Approvers can reject
+        if (authContext.user?.isApprover == true && selectedRows.length === 1) {
+            newOpacityArray[5] = 1;
+        }
+        // Approvers can re-schedule
+        if (authContext.user?.isApprover == true && selectedRows.length === 1) {
+            newOpacityArray[6] = 1;
+        }
+        // Approvers can archive
+        if (authContext.user?.isApprover == true && selectedRows.length === 1) {
+            newOpacityArray[7] = 1;
+        }
+        // Approvers and creators can email
+        if ((authContext.user?.isApprover == true || authContext.user?.isCreator) == true && selectedRows.length === 1) {
+            newOpacityArray[8] = 1;
+        }
+        // Approvers and creators can notify
+        if ((authContext.user?.isApprover == true || authContext.user?.isCreator) == true && selectedRows.length === 1) {
+            newOpacityArray[9] = 1;
+        }
+
+        setIconDisplayState(newOpacityArray);
+    }, [cnsForThisUser, selectedRows]);
 
     useEffect(() => {
         // This code will be executed whenever selectedUserEmail changes
@@ -93,9 +137,8 @@ const MyChangeNotifications = () => {
         console.log('Row clicked:', index);
         setActiveCN(cnsForThisUser[index]);
         //debugger;
-        setSelectedRow(index);
+        setSelectedRows([index]);
     }
-
 
     const renderRow = (cn: ChangeNotification, rowIndex: number) => {
         const rowDataArray = [
@@ -117,7 +160,7 @@ const MyChangeNotifications = () => {
         ];
         // ebugger;
         return (
-            <tr key={rowIndex} onClick={() => handleRowClick(rowIndex)} style={rowIndex === selectedRow ? { color: 'white', backgroundColor: 'var(--ent-blue)' } : {}}>
+            <tr key={rowIndex} onClick={() => handleRowClick(rowIndex)} style={rowIndex in selectedRows ? { color: 'white', backgroundColor: 'var(--ent-blue)' } : {}}>
                 {rowDataArray.map((data, index) => (
                     <td key={index} className="column" style={{ minWidth: columnWidths[index] }}>
                         {data.toString().length > 50 ? data.toString().slice(0, 50) + '...' : data.toString()}
@@ -132,54 +175,71 @@ const MyChangeNotifications = () => {
         newState[4] = 1
         setIconDisplayState(newState)
     }
+    const onCreateChangeNotification = () => {
+        if (iconDisplayState[1] === 1) {
+            setIsNewCN(true);
+            setShowDetailForm(!showDetailForm);
+        }
+        else {
+            setIsNewCN(false);
+        }
+
+    }
     return (
         <>
             {cnsForThisUser.length > 0 || authContext.user?.isCreator == true ? (
                 <div className="scrollableContainer" ref={scrollableContainerRef} >
-                    <div className="iconContainer ent-requires-selection"  onClick={() => navigate(-1)} ><i className={`material-icons ent-icon`}>home</i><div>Back</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[0] }} onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon`}>search</i><div>Search</div></div>
-                    <div className="iconContainer" style={{ opacity: iconDisplayState[1] }} onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon`}>create</i><div>Create CN</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[2] }} onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon`}>star</i><div>Acknowledge</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[3] }} onClick={(e) => navigate('/')} ><i className={`material-icons ent-icon`}>edit</i><div>Edit</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[4] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>done</i><div>Accept</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[5] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>delete</i><div>Reject</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[6] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>calendar_month</i><div>Re-Schedule</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[7] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>archive</i><div>Archive</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[8] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>email</i><div>Email</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[9] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon`}>notifications</i><div>Notifications</div></div>
+                    <div className="iconContainer ent-requires-selection" onClick={() => navigate(-1)} ><i className={`material-icons ent-icon`}>home</i><div>Back</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[0] }} onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon ent-purple`}>search</i><div>Search</div></div>
+                    <div className="iconContainer" style={{ opacity: iconDisplayState[1] }} onClick={(e) => onCreateChangeNotification()}  ><i className={`material-icons ent-icon ent-dark-yellow`}>edit_square</i><div>Create CN</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[2] }} onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon ent-green`}>star</i><div>Acknowledge</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[3] }} onClick={(e) => navigate('/')} ><i className={`material-icons ent-icon ent-orange`}>edit</i><div>Edit</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[4] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>done</i><div>Accept</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[5] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-red`}>delete</i><div>Reject</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[6] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-dark-yellow`}>calendar_month</i><div>Re-Schedule</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[7] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-purple`}>archive</i><div>Archive</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[8] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-orange`}>email</i><div>Email</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[9] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>notifications</i><div>Notifications</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[9] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-red`}>emoji_people</i><div>Object</div></div>
                 </div>
             ) : <></>}
             <hr></hr>
             <div className='mocPage'>
-                <h2>My Change Notifications</h2>
+                {!showDetailForm &&
+                    <>
+                        <h2>My Change Notifications</h2>
 
-                {cnsForThisUser.length === 0 ? (
-                    <div>No data to display</div>
-                ) : (
-                    <div className="tableContainer">
-                        <table className="table table-bordered">
-                            <thead className='th columnHeader'>
-                                <tr>
-                                    {columns.map((column, index) => (
-                                        <th key={index} className="column th columnHeader" style={{ minWidth: columnWidths[index] }}>
-                                            {column}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {cnsForThisUser.map(renderRow)}
-                            </tbody>
-                        </table>
+                        {cnsForThisUser.length === 0 ? (
+                            <>
+                                <div>No data to display</div>
+                                <button className='btn btn-primary' onClick={() => navigate(-1)}>Back</button></>
+                        ) : (
+                            <div className="tableContainer">
+                                <table className="table table-bordered">
+                                    <thead className='th columnHeader'>
+                                        <tr>
+                                            {columns.map((column, index) => (
+                                                <th key={index} className="column th columnHeader" style={{ minWidth: columnWidths[index] }}>
+                                                    {column}
+                                                </th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {cnsForThisUser.map(renderRow)}
+                                    </tbody>
+                                </table>
 
-                    </div>
+                            </div>
 
-                )}
-                <hr>
-                </hr>
+                        )}
+                        <hr>
+                        </hr>
+                    </>
+                }
+                {showDetailForm && <ChangeNotificationDetailForm isNewCN={isNewCN} changeNotice={activeCN}></ChangeNotificationDetailForm>
+                }
 
-                <ChangeNotificationDetailForm changeNotice={activeCN}></ChangeNotificationDetailForm>
-                <button className='btn btn-primary' onClick={() => navigate(-1)}>Back</button>
             </div>
         </>
     );

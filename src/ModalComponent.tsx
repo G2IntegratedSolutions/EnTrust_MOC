@@ -21,7 +21,7 @@ const ModalComponent: React.FC<ModalComponentProps> = ({ isOpen,infoHeader, info
 
       {infoHeader && <h2>{infoHeader}</h2>}
       {infoContent && <div>{infoContent}</div>}
-      <button className='btn btn-primary' onClick={onRequestClose}>Closer</button>
+      <button className='btn btn-primary' onClick={onRequestClose}>Close</button>
     </Modal>
   );
 };
