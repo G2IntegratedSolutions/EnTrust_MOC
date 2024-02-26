@@ -22,7 +22,7 @@ export interface User {
 // 'Groups', 'Short Description', 'Long Description', 'Impacts', 'Required Date of Completion', 
 // 'Notes', 'Attachments'];
 // [safety quality production, facilities, IT, HR, finance, other]
-export interface ChangeNotification {
+export type ChangeNotification = {
     [key: string]: any;
     mocNumber: string
     creator:string,
@@ -52,7 +52,6 @@ export interface ChangeNotification {
     onArchivedNotes: string[],
     onRejectedNotes: string[],
     onUpdatesRequiredNotes: string[],
-    onResbumittedNotes: string[],
     onPausedNotes: string[],
     onRescheduledNotes: string[],
     onCancelledNotes: string[],

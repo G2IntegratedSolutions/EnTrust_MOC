@@ -10,6 +10,7 @@ import mapImage from './assets/map.png';
 import ModalComponent from './ModalComponent';
 import { map } from '@firebase/util';
 import { assertQualifiedTypeIdentifier } from '@babel/types';
+import { OnCreateCN} from './TransitionEvents';
 
 interface ChangeNotificationDetailFormProps {
     changeNotice: ChangeNotification | null;
@@ -237,8 +238,8 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
     const handleCreateCN = async (e: FormEvent) => {
         e.preventDefault();
         try {
-            const cn = {
-                mocNumber:
+            const cn: ChangeNotification = {
+                mocNumber,
                 creator,
                 owner:formatCnField(owner),
                 approver:formatCnField(approver),
@@ -258,14 +259,26 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                 notes:formatCnField(notes),
                 attachments:formatCnField(attachments),
                 organization: authContext?.user?.organization,
-
+                onCreatedNotes:[],
+                onUnderReviewNotes:[],
+                onActivatedNotes: [],
+                onCompletedNotes: [],
+                onArchivedNotes: [],
+                onRejectedNotes:[],
+                onUpdatesRequiredNotes:[],
+                onCancelledNotes:[],
+                acknowledgements:[],
+                objections:[]
             };
+
+
             // ebugger;
             //return;
             const db = getFirestore();
             const docRef = await addDoc(collection(db, 'changeNotifications'), cn);
             console.log('New Change Notification added with ID: ', docRef.id);
             toast.success('Change Notification successfully added!');
+            OnCreateCN(cn, authContext.user);
             props?.setShowDetailForm(false);
         } catch (error) {
             console.error('Error creating Change Notification:', error);
