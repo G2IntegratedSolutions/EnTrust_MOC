@@ -57,4 +57,10 @@ export type ChangeNotification = {
     onCancelledNotes: string[],
     acknowledgements: string[],
     objections: string[],
+    latestOwner: string,
+    latestApprover: string,
+    latestState: string,
+    latestGroups: string[],
+    latestDescriptionOfChange: string,
+    latestShortReasonForChange: string,
 }

@@ -3,7 +3,6 @@ import { getFirestore, collection, query, where, getDocs, addDoc } from '@fireba
 // Sends on Create CN Email
 export const OnCreateCN = async (cn: ChangeNotification|any, user: any) => {
     const db = getFirestore();
-    debugger;
     const mail = {
         to: user.email,
         message: {

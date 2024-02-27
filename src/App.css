@@ -23,6 +23,11 @@
 .App {
   text-align: center;
 }
+
+.btn-primary {
+  margin-right: 10px !important;
+}
+
 .form-check-input:checked {
   background-color: var(--ent-blue) !important;
 }
