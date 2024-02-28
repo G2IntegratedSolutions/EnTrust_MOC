@@ -8,7 +8,7 @@
   --ent-dark-yellow: hsl(52, 93%, 31%);
   --ent-purple: #674677;
   --ent-red: #cf202f;
-  --ent-light-gray: #b3b4b2
+  --ent-light-gray: #b3b4b2;
   --ent-dark-gray: #5d6771;
 
   --ent-light-blue: #00b0d0;
@@ -173,9 +173,9 @@ label {
   border-radius: 10px !important;
   border: 1px solid var(--ent-blue) !important;
   z-index: 1000 !important;
-  top: 50% !important;;
-  left: 50% !important;;
-  transform: translate(-50%, -50%) !important;;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
 }
 
 .iconContainer {
@@ -190,7 +190,7 @@ label {
   padding: 10px;
   background-color: #f8f9fa;
   width:80px;
-  font-size:10px
+  font-size:10px;
 }
 .scrollableContainer {
   overflow-x: auto;
