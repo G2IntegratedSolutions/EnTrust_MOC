@@ -1,3 +1,18 @@
+export enum CNState {
+    CREATED = 'CREATED',
+    UNDER_REVIEW = 'UNDER_REVIEW',
+    APPROVED = 'APPROVED',
+    ACTIVATED =  'ACTIVATED',
+    COMPLETED =  'COMPLETED',
+    ARCHIVED = 'ARCHIVED',
+    REJECTED = 'REJECTED',
+    UPDATES_REQUIRED = 'UPDATES_REQUIRED',
+    PAUSED = 'PAUSED',
+    RESCHEDULED = 'RESCHEDULED',
+    CANCELLED = 'CANCELLED'
+
+}
+
 export interface Group {
     id:string,
     name: string;
