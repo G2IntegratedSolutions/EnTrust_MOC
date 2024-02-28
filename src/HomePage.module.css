@@ -1,15 +1,18 @@
 
 .mocManager{
-    font-size: clamp(22px, 3vw, 40px);
+    font-size: clamp(16px, 3vw, 42px);
     white-space: nowrap;
     font-weight: bold;
     color:var(--bs-primary);
     z-index: 1 ;
-    line-height:clamp(22px, 3vw, 40px);
+    line-height:clamp(26px, 3vw, 40px);
+    margin-left: -20px;
 }
 .login{
     color:white;
-    font-weight:600
+    font-weight: 400;
+    font-size: clamp(12px, 1.5vw, 16px);
+    margin-right: 0px;
 }
 .manageYourChange{
     font-size: 12px;
@@ -17,6 +20,7 @@
     font-style: italic; 
     color: var(--ent-blue);
     margin-top: -3px;
+    margin-left: -20px;;
 }
 
 .box {
@@ -26,6 +30,7 @@
     justify-content: center;
     border-radius: 5px;
     margin-bottom: 20px;
+    text-align: center;
     margin:10px;
 }
 header {
@@ -47,14 +52,22 @@ a {
 }
 .green {
     background-color: var(--ent-green) !important;
+    cursor: pointer;
     color: white;
 }
 .bg-success {
     background-color: "pink";
     color: white;
 }
+
+.disabled2 {
+    pointer-events: none  !important;
+    color: white;
+}
+
 .blue {
-    background-color: var(--ent-blue) !important;
+    background-color: var(--ent-blue);
+    cursor: pointer;
     color:white;
 }
 

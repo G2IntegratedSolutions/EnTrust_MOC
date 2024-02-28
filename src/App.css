@@ -4,7 +4,8 @@
   --ent-dark-green: hsl(121, 40%, 44%);
   --ent-blue: #295f82;
   --ent-orange: #e77925;
-  --ent-yellow: #f6d710;
+  --ent-yellow: hsl(52, 93%, 51%);
+  --ent-dark-yellow: hsl(52, 93%, 31%);
   --ent-purple: #674677;
   --ent-red: #cf202f;
   --ent-light-gray: #b3b4b2
@@ -21,6 +22,14 @@
 }
 .App {
   text-align: center;
+}
+
+.btn-primary {
+  margin-right: 10px !important;
+}
+
+.form-check-input:checked {
+  background-color: var(--ent-blue) !important;
 }
 img.header-logo {
   width: clamp(80px, 20vw, 160px);
@@ -91,7 +100,7 @@ h2{
   border-color:var(--ent-blue) !important; /* Adjust if needed */
 }
 .form-label {
-  color: var(--ent-blue) !important;
+  color: var(--ent-green) !important;
 }
 label {
   margin-bottom: 2px !important;
@@ -109,7 +118,40 @@ label {
   color: var(--ent-blue) !important;
 
 }
+.ent-dark-yellow{
+  color: var(--ent-dark-yellow) !important;
+  font-weight: bold;
+}
+.ent-red {
+  color: var(--ent-red) !important;
+  font-weight: bold;
+}
+.ent-orange {
+  color: var(--ent-orange) !important;
+  font-weight: bold;
+}
+.ent-blue {
+  color: var(--ent-blue) !important;
+  font-weight: bold;
+}
+.ent-gray{
+  color: var(--ent-light-gray) !important;
+  font-weight: bold;
 
+}
+.ent-purple {
+  color: var(--ent-purple) !important;
+  font-weight: bold;
+}
+.ent-green {
+  color: var(--ent-green) !important;
+  font-weight: bold;
+}
+.ent-yellow {
+  color: var(--ent-yellow) !important;
+  font-weight: bold;
+
+}
 .home-icon {
   margin-left: 10px;
   cursor: pointer;
@@ -120,6 +162,9 @@ label {
   margin-left: 5px;
   vertical-align: text-bottom;
   cursor: pointer;
+}
+.modalMap{
+  position:absolute;
 }
 .ReactModal__Content {
   background-color: rgba(200, 200, 200, .85) !important;
@@ -132,17 +177,26 @@ label {
   left: 50% !important;;
   transform: translate(-50%, -50%) !important;;
 }
+
 .iconContainer {
   display: inline-block;
-  margin-right: 60px !important;
+  margin-right: 0px !important;
   text-align: center;
   cursor: pointer;
-  color:var(--ent-blue)
+  color:var(--ent-blue);
+  border-right: 1px solid #cccccc;
+  border-top: 1px solid #cccccc;
+  border-bottom: 1px solid #cccccc; ;
+  padding: 10px;
+  background-color: #f8f9fa;
+  width:80px;
+  font-size:10px
 }
 .scrollableContainer {
   overflow-x: auto;
-  width: 90vw;
+  width: 100%;
   white-space: nowrap;
-  margin-top: 10px;
-  margin-left:10px;
+}
+.ent-home-button{
+  padding:10px;
 }

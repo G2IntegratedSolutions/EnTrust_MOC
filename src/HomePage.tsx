@@ -12,9 +12,9 @@ const HomePage: React.FC = () => {
     const navigate = useNavigate();
     useEffect(() => {
         if (!isAuthenticated) {
-          navigate('/login');
+            navigate('/login');
         }
-      }, [isAuthenticated, navigate]);
+    }, [isAuthenticated, navigate]);
     return (
         isAuthenticated ? (
             <div>
@@ -28,30 +28,34 @@ const HomePage: React.FC = () => {
                             </div>
                         ) : (<div></div>)}
                     </div>
-                    <div className="col-lg-4">
+                    {/* <div className="col-lg-4">
                         {user?.isAdmin && (
                             <div className={`${styles.box} ${styles.blue}`}>
                                 <h3>Reports</h3>
                             </div>
                         )}
-                    </div>
+                    </div> */}
                     <div className="col-lg-4">
-                        {user?.isAdmin && (
-                            <div className={`${styles.box} ${styles.orange}`}>
-                                <Link to="/admin">
+
+                        <div className={`${styles.box} ${styles.blue}`}>
+                            <div className={`${user?.isAdmin === false ? styles.disabled2 : ''}`}>
+                                <Link to="/admin" >
                                     <h3>Administration</h3>
+                                    <p>(must be logged in as "Administrator")</p>
                                 </Link>
                             </div>
-                        )}
+                        </div>
+
                     </div>
                     <div className="col-lg-4">
 
-                            <div className={`${styles.box} ${styles.orange}`}>
-                                <Link to="/admin">
-                                    <h3>UNSAFE Administration</h3>
-                                    <p>Creating users and groups should be blocked on the server!</p>
-                                </Link>
-                            </div>
+                        <div className={`${styles.box} ${styles.orange}`}>
+                            <Link to="/admin">
+                                <h3>UNSAFE Administration</h3>
+                                <p>Creating users and groups should be blocked on the server!</p>
+                                <p>This is for testing purposes only</p>
+                            </Link>
+                        </div>
 
                     </div>
                 </div>
@@ -60,7 +64,7 @@ const HomePage: React.FC = () => {
         ) : (
             <h1>Please login</h1>
         )
-    ) 
+    )
 };
 
 export default HomePage;

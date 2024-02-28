@@ -19,7 +19,8 @@ const Login: React.FC = () => {
   let loggedInUserUserID: string;
   // Initialize Firestore
   const db = getFirestore();
-
+  let firstName: string;
+  let lastName: string;
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -29,16 +30,20 @@ const Login: React.FC = () => {
       const usersCollectionRef = collection(db, 'Users');
       const q = query(usersCollectionRef, where("email", "==", email));
       const querySnapshot = await getDocs(q);
+
       //We should only have one user with this email address
       querySnapshot.forEach((doc) => {
         setLoggedInUserData({
           ...loggedInUserData,
           uid: loggedInUserUserID,
           userName: userCred.user.email,
-          organization: doc.data().organization
+          organization: doc.data().organization,
+          firstName: doc.data().firstName,
+          lastName: doc.data().lastName,
         }
         );
-
+        firstName = doc.data().firstName;
+        lastName = doc.data().lastName;
         // Initialize an empty array
         let roles = [];
         // Populate the roles array
@@ -55,7 +60,8 @@ const Login: React.FC = () => {
           roles.push('Stakeholder');
         }
         if (roles.length === 1) {
-          login(email, doc.data().UserName, doc.data().isAdmin, doc.data().isApprover, doc.data().isCreator, doc.data().isStakeholder, doc.data().organization, userCred.user.uid);
+          debugger;
+          login(email, doc.data().UserName, doc.data().isAdmin, doc.data().isApprover, doc.data().isCreator, doc.data().isStakeholder, doc.data().organization, userCred.user.uid, doc.data().firstName, doc.data().lastName);
           navigate('/');
         }
         if (roles.length === 0) {
@@ -92,7 +98,7 @@ const Login: React.FC = () => {
     const isCreator = e.target.value === 'Creator';
     const isStakeholder = e.target.value === 'Stakeholder';
     //ebugger;
-    login(email, loggedInUserData.userName, isAdmin, isApprover, isCreator, isStakeholder, loggedInUserData.organization, loggedInUserData.uid);
+    login(email, loggedInUserData.userName, isAdmin, isApprover, isCreator, isStakeholder, loggedInUserData.organization, loggedInUserData.uid, loggedInUserData.firstName, loggedInUserData.lastName);
     navigate('/');
   }
 
