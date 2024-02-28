@@ -25,9 +25,10 @@ const MyChangeNotifications = () => {
     const [showTable, setShowTable] = useState(true);
     const [isNewCN, setIsNewCN] = useState(false);
     //When the child details component creates a new CN, 
-    //Then refreshCNs is updated to the MoCID of that CN. 
-    //we use that to select the newly added CN in the table.
-    const [refreshCNs, setRefreshCNs] = useState('AAAAAAAAAA');
+    //Then setRequestedMocID is updated to the MoCID of that CN. 
+    //setRequestedMocID is also used when the user clicks on a CN in the table.
+    //RequestedMocID is used to populate the details form with CN data when isNewCN is false.
+    const [requestedMocID, setRequestedMocID] = useState('AAAAAAAAAA');
 
     useEffect(() => {
         // console.log('selectedRow:', selectedRows[0]);
@@ -74,6 +75,8 @@ const MyChangeNotifications = () => {
     const getLastValueInArray = (arr: any[]) => {
         return arr[arr.length - 1];
     }
+    //This useEffect creates the changeNotifications array.  It runs when the component
+    //loads or when the CN Details form in newCN mode creates a new CN. 
     useEffect(() => {
         let selectedUser_Email = selectedUserEmail;
         let org = authContext.user?.organization;
@@ -124,21 +127,25 @@ const MyChangeNotifications = () => {
 
                         // Cast the data to a ChangeNotification and add it to the array
                         changeNotifications.push(latest as ChangeNotification);
-                        if(latest.mocNumber === refreshCNs){
+                        if(latest.mocNumber === requestedMocID){
                             indexOfNewlyCreatedCNtoSelect = changeNotifications.length - 1;
+
                             //setSelectedRows([changeNotifications.length - 1]);
                             //handleRowClick(changeNotifications.length - 1);
                             //setRefreshCNs('AAAAAAAAAA');
                         }
                     }
                     setCnsForThisUser(changeNotifications);
+                    if(indexOfNewlyCreatedCNtoSelect !== -1){
+                        handleRowClick(indexOfNewlyCreatedCNtoSelect, changeNotifications[indexOfNewlyCreatedCNtoSelect]);
+                    }
                 }
                 else {
                     //setGroupsForSelectedUser([]);
                 }
             });
         }
-    }, [refreshCNs, activeCN, isNewCN]);
+    }, [requestedMocID]);
 
     const displayState = (icon: string): string => {
 
@@ -160,9 +167,12 @@ const MyChangeNotifications = () => {
         return ".3";
     }
 
-    const handleRowClick = (index: number) => {
+    const handleRowClick = (index: number, changeNotifications?: ChangeNotification) => {
         console.log('Selected rows:', index);
-        setActiveCN({...activeCN, ...cnsForThisUser[index]})
+        if (changeNotifications === undefined) {
+            changeNotifications = cnsForThisUser[index];
+        }
+        setActiveCN({...activeCN, ...changeNotifications})
         setSelectedRows([]);
         setSelectedRows([index]);
         setShowTable(true);
@@ -294,7 +304,7 @@ const MyChangeNotifications = () => {
                     </>
                 }
                 {showDetailForm && 
-                <ChangeNotificationDetailForm isNewCN={isNewCN} changeNotice={activeCN} onShowDetailsFormDismissed={onShowDetailsFormDismissed} setRefreshCNs={setRefreshCNs}></ChangeNotificationDetailForm>
+                <ChangeNotificationDetailForm isNewCN={isNewCN} changeNotice={activeCN} onShowDetailsFormDismissed={onShowDetailsFormDismissed} setRequestedMocID={setRequestedMocID}></ChangeNotificationDetailForm>
                 }
 
             </div>

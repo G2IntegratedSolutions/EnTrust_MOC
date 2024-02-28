@@ -16,7 +16,7 @@ interface ChangeNotificationDetailFormProps {
     changeNotice: ChangeNotification | null;
     isNewCN: boolean;
     onShowDetailsFormDismissed: () => void;
-    setRefreshCNs: React.Dispatch<React.SetStateAction<string>>;
+    setRequestedMocID: React.Dispatch<React.SetStateAction<string>>;
 }
 
 
@@ -118,7 +118,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
         setApprover(theApprover);
 
         getGroupsForOrganization()
-    }, [cn, props?.isNewCN]);
+    }, [cn?.mocNumber, props?.isNewCN]);
 
     interface ChangeNotification {
         [key: string]: any;
@@ -305,16 +305,13 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                 latestShortReasonForChange: shortReasonForChange,
             };
 
-
-            debugger;
-            //return;
             const db = getFirestore();
             const docRef = await addDoc(collection(db, 'changeNotifications'), cn);
             console.log('New Change Notification added with ID: ', docRef.id);
             toast.success('Change Notification successfully added!');
             OnCreateCN(cn, authContext.user);
             props?.onShowDetailsFormDismissed();
-            props?.setRefreshCNs(mocNumber);
+            props?.setRequestedMocID(mocNumber);
         } catch (error) {
             console.error('Error creating Change Notification:', error);
             toast.error('Error creating Change Notification: ' + error);
