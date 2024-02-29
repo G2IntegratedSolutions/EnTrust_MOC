@@ -23,7 +23,14 @@
 .App {
   text-align: center;
 }
+.fade {
+  transition: opacity 0.5s ease-in-out;
+  opacity: 1;
+}
 
+.fade.hide {
+  opacity: 0;
+}
 .btn-primary {
   margin-right: 10px !important;
 }

@@ -3,15 +3,14 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './MyChangeNotifications.css';
 import './App.css';
 import { useAuth } from './AuthContext';
-import { getFirestore, query, where, collection, addDoc, Query, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { ChangeNotification } from './Interfaces';
 import { useNavigate } from 'react-router-dom';
 import ChangeNotificationDetailForm from './ChangeNotficiationDetailForm';
 import { CNState } from './Interfaces';
-import { OnSeekApprovalCN } from './TransitionEvents';
 import firebase from 'firebase/app';
 import 'firebase/firestore';
 import { toast } from 'react-toastify';
+import { getFirestore, query, where, collection, addDoc, Query, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import StateChange from './StateChange';
 
 const MyChangeNotifications = () => {
@@ -86,7 +85,7 @@ const MyChangeNotifications = () => {
 
 
         setIconDisplayState(newOpacityArray);
-    }, [cnsForThisUser, selectedRows]);
+    }, [cnsForThisUser, selectedRows, showStateChange]);
 
     const getLastValueInArray = (arr: any[]) => {
         return arr[arr.length - 1].value;
@@ -162,7 +161,7 @@ const MyChangeNotifications = () => {
                 }
             });
         }
-    }, [requestedMocID]);
+    }, [requestedMocID, showStateChange]);
 
 
     const handleRowClick = (index: number, changeNotifications?: ChangeNotification) => {
@@ -200,33 +199,13 @@ const MyChangeNotifications = () => {
     }
 
     const onSeekApproval = async () => {
-        try{
+        try {
+            debugger
             setRequestedToState(CNState.PENDING_APPROVAL);
             setShowStateChange(true);
-            const mocNumber = activeCN?.mocNumber;
-            const db = getFirestore();
-            const cnCollection = collection(db, 'changeNotifications');
-            const qCN = query(cnCollection, where("mocNumber", "==", mocNumber));
-            const cnSnapshot = getDocs(qCN).then(async (querySnapshot) => {
-                querySnapshot.forEach((doc) => {
-                    let newDoc = {...doc.data()};//name: newName, description: newDescription, id: currentGroup.id, organization: currentGroup.organization}
-                    let cnState = newDoc.cnState;
-                    cnState.push({ value: CNState.PENDING_APPROVAL, timeStamp: Date.now()});
-                    newDoc.cnState = cnState;
-                    updateDoc(doc.ref, newDoc).then(() => {
-                        //refreshUsersAndGroupsInOrg();
-                        toast.success('Change Notification successfully updated!');
-                    }).catch((error) => {
-                        toast.error('Error updating Change Notification: ' + error);
-                        console.error('Error updating group:', error);
-                        //toast.error('Error updating group: ' + error);
-                    });
-                });
-            });
-            OnSeekApprovalCN(activeCN as ChangeNotification, authContext.user);
         }
-        finally{
-            
+        finally {
+
         }
 
     }
@@ -234,106 +213,106 @@ const MyChangeNotifications = () => {
     return (
         <>
             {showStateChange ? <StateChange changeNotification={activeCN} toState={requestedToState} setShowStateChange={setShowStateChange} /> :
-            <>
-            {(cnsForThisUser.length > 0 || authContext.user?.isCreator == true) && (showTable) ? (
-                <div className="scrollableContainer" ref={scrollableContainerRef} >
-                    <div className="iconContainer ent-requires-selection" onClick={() => navigate(-1)} ><i className={`material-icons ent-icon`}>home</i><div>Back</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[0] }} onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon ent-purple`}>search</i><div>Search</div></div>
-                    <div className="iconContainer" style={{ opacity: iconDisplayState[1] }} onClick={(e) => onCreateChangeNotification()}  ><i className={`material-icons ent-icon ent-orange`}>edit_square</i><div>Create CN</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[2] }} onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon ent-green`}>star</i><div>Acknowledge</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[3] }} onClick={(e) => onSeekApproval()}  ><i className={`material-icons ent-icon ent-blue`}>send</i><div>Seek Approval</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[4] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>done</i><div>Approve CN</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[5] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-red`}>delete</i><div>Reject CN</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[6] }} onClick={(e) => navigate('/')} ><i className={`material-icons ent-icon ent-orange`}>edit</i><div>Edit</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[7] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-blue`}>calendar_month</i><div>Reschedule CN</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[8] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>pause</i><div>Pause CN</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[9] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-red`}>cancel</i><div>Cancel CN</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[10] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>done_all</i><div>Complete CN</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[11] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-purple`}>archive</i><div>Archive CN</div></div>
-                    {/* <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[12] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-orange`}>email</i><div>Send Emails</div></div>
+                <>
+                    {(cnsForThisUser.length > 0 || authContext.user?.isCreator == true) && (showTable) ? (
+                        <div className="scrollableContainer" ref={scrollableContainerRef} >
+                            <div className="iconContainer ent-requires-selection" onClick={() => navigate(-1)} ><i className={`material-icons ent-icon`}>home</i><div>Back</div></div>
+                            <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[0] }} onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon ent-purple`}>search</i><div>Search</div></div>
+                            <div className="iconContainer" style={{ opacity: iconDisplayState[1] }} onClick={(e) => onCreateChangeNotification()}  ><i className={`material-icons ent-icon ent-orange`}>edit_square</i><div>Create CN</div></div>
+                            <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[2] }} onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon ent-green`}>star</i><div>Acknowledge</div></div>
+                            <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[3] }} onClick={(e) => onSeekApproval()}  ><i className={`material-icons ent-icon ent-blue`}>send</i><div>Seek Approval</div></div>
+                            <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[4] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>done</i><div>Approve CN</div></div>
+                            <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[5] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-red`}>delete</i><div>Reject CN</div></div>
+                            <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[6] }} onClick={(e) => navigate('/')} ><i className={`material-icons ent-icon ent-orange`}>edit</i><div>Edit</div></div>
+                            <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[7] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-blue`}>calendar_month</i><div>Reschedule CN</div></div>
+                            <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[8] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>pause</i><div>Pause CN</div></div>
+                            <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[9] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-red`}>cancel</i><div>Cancel CN</div></div>
+                            <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[10] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>done_all</i><div>Complete CN</div></div>
+                            <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[11] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-purple`}>archive</i><div>Archive CN</div></div>
+                            {/* <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[12] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-orange`}>email</i><div>Send Emails</div></div>
                     <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[13] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>notifications</i><div>Notifications</div></div>
                     <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[14] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-red`}>emoji_people</i><div>Object to CN</div></div> */}
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[15] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-blue`}>bar_chart</i><div>Reports</div></div>
-                </div>
-            ) : <></>}
-            {showTable && showTable &&
-                <hr></hr>}
-            <div className='mocPage'>
-                {(showTable) &&
-                    <>
-                        <h2>Change Notifications</h2>
-
-                        {cnsForThisUser.length === 0 ? (
+                            <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[15] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-blue`}>bar_chart</i><div>Reports</div></div>
+                        </div>
+                    ) : <></>}
+                    {showTable && showTable &&
+                        <hr></hr>}
+                    <div className='mocPage'>
+                        {(showTable) &&
                             <>
-                                <div>No data to display</div>
-                                <button className='btn btn-primary' onClick={() => navigate(-1)}>Back</button></>
-                        ) : (
-                            <div className="tableContainer">
-                                <table className="table table-bordered">
-                                    <thead className='th columnHeader'>
-                                        <tr>
-                                            {columns.map((column, index) => (
-                                                <th key={index} className="column th columnHeader" style={{ minWidth: columnWidths[index] }}>
-                                                    {column}
-                                                </th>
-                                            ))}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {cnsForThisUser.map((cn: ChangeNotification, rowIndex: number) => {
-                                            const rowDataObject = {
-                                                mocNumber: cn.mocNumber,
-                                                creator: cn.creator,
-                                                owner: getLastValueInArray(cn.owner),
-                                                approver: getLastValueInArray(cn.approver),
-                                                shortReasonForChange: getLastValueInArray(cn.shortReasonForChange),
-                                                groups: getLastValueInArray(cn.groups),
-                                                cnState: getLastValueInArray(cn.cnState),
-                                                changeTopic: getLastValueInArray(cn.changeTopic),
-                                                dateOfCreation: getLastValueInArray(cn.dateOfCreation),
-                                                dateOfPublication: getLastValueInArray(cn.dateOfPublication),
-                                                timeOfImplementation: getLastValueInArray(cn.timeOfImplementation),
-                                                requiredDateOfCompletion: getLastValueInArray(cn.requiredDateOfCompletion),
-                                                category: getLastValueInArray(cn.category),
-                                                changeType: getLastValueInArray(cn.changeType),
-                                                descriptionOfChange: getLastValueInArray(cn.descriptionOfChange),
-                                                impacts: getLastValueInArray(cn.impacts),
-                                                location: getLastValueInArray(cn.location),
-                                                notes: getLastValueInArray(cn.notes),
-                                                attachments: getLastValueInArray(cn.attachments)
-                                            };
-                                            // ebugger;
-                                            return (
-                                                <tr key={rowIndex} onClick={() => handleRowClick(rowIndex)} style={selectedRows.includes(rowIndex) ? { color: 'white', backgroundColor: 'var(--ent-blue)' } : {}}>
-                                                    {Object.values(rowDataObject).map((data, index) => (
-                                                        <td key={index} className="column" style={{ minWidth: columnWidths[index] }}>
-                                                            {data !== undefined
-                                                                ? data.toString().length > 50
-                                                                    ? data.toString().slice(0, 50) + '...'
-                                                                    : data.toString()
-                                                                : null
-                                                            }
-                                                        </td>
+                                <h2>Change Notifications</h2>
+
+                                {cnsForThisUser.length === 0 ? (
+                                    <>
+                                        <div>No data to display</div>
+                                        <button className='btn btn-primary' onClick={() => navigate(-1)}>Back</button></>
+                                ) : (
+                                    <div className="tableContainer">
+                                        <table className="table table-bordered">
+                                            <thead className='th columnHeader'>
+                                                <tr>
+                                                    {columns.map((column, index) => (
+                                                        <th key={index} className="column th columnHeader" style={{ minWidth: columnWidths[index] }}>
+                                                            {column}
+                                                        </th>
                                                     ))}
                                                 </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
+                                            </thead>
+                                            <tbody>
+                                                {cnsForThisUser.map((cn: ChangeNotification, rowIndex: number) => {
+                                                    const rowDataObject = {
+                                                        mocNumber: cn.mocNumber,
+                                                        creator: cn.creator,
+                                                        owner: getLastValueInArray(cn.owner),
+                                                        approver: getLastValueInArray(cn.approver),
+                                                        shortReasonForChange: getLastValueInArray(cn.shortReasonForChange),
+                                                        groups: getLastValueInArray(cn.groups),
+                                                        cnState: getLastValueInArray(cn.cnState),
+                                                        changeTopic: getLastValueInArray(cn.changeTopic),
+                                                        dateOfCreation: getLastValueInArray(cn.dateOfCreation),
+                                                        dateOfPublication: getLastValueInArray(cn.dateOfPublication),
+                                                        timeOfImplementation: getLastValueInArray(cn.timeOfImplementation),
+                                                        requiredDateOfCompletion: getLastValueInArray(cn.requiredDateOfCompletion),
+                                                        category: getLastValueInArray(cn.category),
+                                                        changeType: getLastValueInArray(cn.changeType),
+                                                        descriptionOfChange: getLastValueInArray(cn.descriptionOfChange),
+                                                        impacts: getLastValueInArray(cn.impacts),
+                                                        location: getLastValueInArray(cn.location),
+                                                        notes: getLastValueInArray(cn.notes),
+                                                        attachments: getLastValueInArray(cn.attachments)
+                                                    };
+                                                    // ebugger;
+                                                    return (
+                                                        <tr key={rowIndex} onClick={() => handleRowClick(rowIndex)} style={selectedRows.includes(rowIndex) ? { color: 'white', backgroundColor: 'var(--ent-blue)' } : {}}>
+                                                            {Object.values(rowDataObject).map((data, index) => (
+                                                                <td key={index} className="column" style={{ minWidth: columnWidths[index] }}>
+                                                                    {data !== undefined
+                                                                        ? data.toString().length > 50
+                                                                            ? data.toString().slice(0, 50) + '...'
+                                                                            : data.toString()
+                                                                        : null
+                                                                    }
+                                                                </td>
+                                                            ))}
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
 
-                            </div>
+                                    </div>
 
-                        )}
-                        <hr>
-                        </hr>
-                    </>
-                }
-                {showDetailForm &&
-                    <ChangeNotificationDetailForm isNewCN={isNewCN} changeNotice={activeCN} onShowDetailsFormDismissed={onShowDetailsFormDismissed} setRequestedMocID={setRequestedMocID}></ChangeNotificationDetailForm>
-                }
+                                )}
+                                <hr>
+                                </hr>
+                            </>
+                        }
+                        {showDetailForm &&
+                            <ChangeNotificationDetailForm isNewCN={isNewCN} changeNotice={activeCN} onShowDetailsFormDismissed={onShowDetailsFormDismissed} setRequestedMocID={setRequestedMocID}></ChangeNotificationDetailForm>
+                        }
 
-            </div>
-            </>}
+                    </div>
+                </>}
         </>
     );
 }

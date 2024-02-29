@@ -18,7 +18,7 @@ export const OnCreateCN = async (cn: ChangeNotification|any, user: any) => {
     const docRef = await addDoc(collection(db, 'mail'), mail);
     
 }
-export const OnSeekApprovalCN = async (cn: ChangeNotification|any, user: any) => {
+export const OnSeekApprovalCN = async (cn: ChangeNotification|any, user: any, emailNotes: string) => {
     const db = getFirestore();
     const mail = {
         to: cn.approver[0].value,
@@ -26,10 +26,18 @@ export const OnSeekApprovalCN = async (cn: ChangeNotification|any, user: any) =>
             html: `
             <h1>Request Approval for Change Notification</h1>
             <hr>
-            <p>A Change Notification (CN) created by ${cn.owner[0].value} is seeking to have their Change Notification approved.  You
+            <p>A Change Notification (CN) created by ${cn.owner[0].value} is seeking to have a Change Notification approved.  You
             have been designated as the approval officer for this CN.  Please log into ENTRUST Moc Manager and 
-            search for <b>Moc Number ${cn.mocNumber}</b> </p>
+            search for <b>Moc Number ${cn.mocNumber}</b>.  As the approval officer, you will typically have the ability to 
+            Approve, Reject, Require Updates, or place the CN "Under Review" so that its consequences can be properly studied. </p>
+            <p>Change Type: ${cn.changeType[0].value}</p>
+            <p>Change Topic: ${cn.changeTopic[0].value}</p>
+            <p>Change Category: ${cn.changeCategory[0].value}</p>
             <p>Short Description: ${cn.shortReasonForChange[0].value}</p>
+
+            <br>
+            <b>Notes from ${user.firstName} ${user.lastName}</b>
+            <p>${emailNotes}</p>
             `,
             subject: `Request Approval for Change Notification ${cn.mocNumber}`,
         }
