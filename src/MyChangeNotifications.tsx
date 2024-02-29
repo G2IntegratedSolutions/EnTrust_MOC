@@ -8,7 +8,11 @@ import { ChangeNotification } from './Interfaces';
 import { useNavigate } from 'react-router-dom';
 import ChangeNotificationDetailForm from './ChangeNotficiationDetailForm';
 import { CNState } from './Interfaces';
-
+import { OnSeekApprovalCN } from './TransitionEvents';
+import firebase from 'firebase/app';
+import 'firebase/firestore';
+import { toast } from 'react-toastify';
+import StateChange from './StateChange';
 
 const MyChangeNotifications = () => {
     const scrollableContainerRef = useRef(null);
@@ -26,6 +30,9 @@ const MyChangeNotifications = () => {
     const [showDetailForm, setShowDetailForm] = useState(false);
     const [showTable, setShowTable] = useState(true);
     const [isNewCN, setIsNewCN] = useState(false);
+    const [requestedToState, setRequestedToState] = useState(CNState.CREATED);
+    const [showStateChange, setShowStateChange] = useState(false);
+
     //When the child details component creates a new CN, 
     //Then setRequestedMocID is updated to the MoCID of that CN. 
     //setRequestedMocID is also used when the user clicks on a CN in the table.
@@ -55,7 +62,7 @@ const MyChangeNotifications = () => {
         }
         // A creator can seek approval for a CN that is either created or updates required
         if (authContext.user?.isCreator == true && selectedRows.length === 1) {
-            if (getLastValueInArray(cnsForThisUser[selectedRows[0]].cnState) === CNState.CREATED|| getLastValueInArray(cnsForThisUser[selectedRows[0]].cnState) === CNState.UPDATES_REQUIRED) {
+            if (getLastValueInArray(cnsForThisUser[selectedRows[0]].cnState) === CNState.CREATED || getLastValueInArray(cnsForThisUser[selectedRows[0]].cnState) === CNState.UPDATES_REQUIRED) {
                 newOpacityArray[3] = 1;
             }
         }
@@ -192,16 +199,50 @@ const MyChangeNotifications = () => {
         }
     }
 
+    const onSeekApproval = async () => {
+        try{
+            setRequestedToState(CNState.PENDING_APPROVAL);
+            setShowStateChange(true);
+            const mocNumber = activeCN?.mocNumber;
+            const db = getFirestore();
+            const cnCollection = collection(db, 'changeNotifications');
+            const qCN = query(cnCollection, where("mocNumber", "==", mocNumber));
+            const cnSnapshot = getDocs(qCN).then(async (querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    let newDoc = {...doc.data()};//name: newName, description: newDescription, id: currentGroup.id, organization: currentGroup.organization}
+                    let cnState = newDoc.cnState;
+                    cnState.push({ value: CNState.PENDING_APPROVAL, timeStamp: Date.now()});
+                    newDoc.cnState = cnState;
+                    updateDoc(doc.ref, newDoc).then(() => {
+                        //refreshUsersAndGroupsInOrg();
+                        toast.success('Change Notification successfully updated!');
+                    }).catch((error) => {
+                        toast.error('Error updating Change Notification: ' + error);
+                        console.error('Error updating group:', error);
+                        //toast.error('Error updating group: ' + error);
+                    });
+                });
+            });
+            OnSeekApprovalCN(activeCN as ChangeNotification, authContext.user);
+        }
+        finally{
+            
+        }
+
+    }
+
     return (
         <>
+            {showStateChange ? <StateChange changeNotification={activeCN} toState={requestedToState} setShowStateChange={setShowStateChange} /> :
+            <>
             {(cnsForThisUser.length > 0 || authContext.user?.isCreator == true) && (showTable) ? (
                 <div className="scrollableContainer" ref={scrollableContainerRef} >
                     <div className="iconContainer ent-requires-selection" onClick={() => navigate(-1)} ><i className={`material-icons ent-icon`}>home</i><div>Back</div></div>
                     <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[0] }} onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon ent-purple`}>search</i><div>Search</div></div>
                     <div className="iconContainer" style={{ opacity: iconDisplayState[1] }} onClick={(e) => onCreateChangeNotification()}  ><i className={`material-icons ent-icon ent-orange`}>edit_square</i><div>Create CN</div></div>
                     <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[2] }} onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon ent-green`}>star</i><div>Acknowledge</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[3] }} onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon ent-blue`}>send</i><div>Seek Approval</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[4] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>done</i><div>Accept CN</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[3] }} onClick={(e) => onSeekApproval()}  ><i className={`material-icons ent-icon ent-blue`}>send</i><div>Seek Approval</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[4] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>done</i><div>Approve CN</div></div>
                     <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[5] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-red`}>delete</i><div>Reject CN</div></div>
                     <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[6] }} onClick={(e) => navigate('/')} ><i className={`material-icons ent-icon ent-orange`}>edit</i><div>Edit</div></div>
                     <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[7] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-blue`}>calendar_month</i><div>Reschedule CN</div></div>
@@ -209,9 +250,9 @@ const MyChangeNotifications = () => {
                     <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[9] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-red`}>cancel</i><div>Cancel CN</div></div>
                     <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[10] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>done_all</i><div>Complete CN</div></div>
                     <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[11] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-purple`}>archive</i><div>Archive CN</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[12] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-orange`}>email</i><div>Send Emails</div></div>
+                    {/* <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[12] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-orange`}>email</i><div>Send Emails</div></div>
                     <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[13] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>notifications</i><div>Notifications</div></div>
-                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[14] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-red`}>emoji_people</i><div>Object to CN</div></div>
+                    <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[14] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-red`}>emoji_people</i><div>Object to CN</div></div> */}
                     <div className="iconContainer ent-requires-selection" style={{ opacity: iconDisplayState[15] }} onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-blue`}>bar_chart</i><div>Reports</div></div>
                 </div>
             ) : <></>}
@@ -292,6 +333,7 @@ const MyChangeNotifications = () => {
                 }
 
             </div>
+            </>}
         </>
     );
 }

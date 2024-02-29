@@ -11,6 +11,8 @@ import ModalComponent from './ModalComponent';
 import { map } from '@firebase/util';
 import { assertQualifiedTypeIdentifier } from '@babel/types';
 import { OnCreateCN } from './TransitionEvents';
+import { info } from 'console';
+import { doc, getDoc } from 'firebase/firestore';
 
 interface ChangeNotificationDetailFormProps {
     changeNotice: ChangeNotification | null;
@@ -30,6 +32,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
     }, [props?.changeNotice?.mocNumber]);
 
     const hideFieldsForNew = true;
+    const [fieldDescriptions, setFieldDescriptions] = useState<Record<string, string>>({});
     const timeStamp = Date.now();
     const date = new Date(timeStamp);
     const year = date.getFullYear();
@@ -90,6 +93,24 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
     const [mapSource, setMapSource] = useState<string>();
 
 
+    //Get the text for the information icons
+    useEffect(() => {
+
+        const db = getFirestore();
+        const infoButtonCollection = collection(db, 'infoButtons');
+        const fieldDescriptionsDoc = doc(db, 'infoButtons', 'fieldDescriptions');
+
+        getDoc(fieldDescriptionsDoc).then((docSnapshot) => {
+            if (docSnapshot.exists()) {
+                setFieldDescriptions(docSnapshot.data());
+
+            } else {
+                // The document does not exist
+                console.log('No such document!');
+            }
+        });
+    }, []);   
+
     useEffect(() => {
         let theMocNumber: string = '';
         let theCreator: string = '';
@@ -121,7 +142,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
             theMocNumber = cn?.mocNumber ? cn?.mocNumber : '';
             theCreator = cn?.creator ? (authContext.user?.userName || '') : '';
             theOwner = getLastInArray(cn, 'owner');
-            theApprover = getLastInArray(cn, 'owner');
+            theApprover = getLastInArray(cn, 'approver');
 
             setShortReasonForChange(getLastInArray(cn, 'shortReasonForChange'));
             setCNState(getLastInArray(cn, 'cnState'));
@@ -169,7 +190,8 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
     };
 
     const handleInfoClick = (id: string) => {
-        setInfoContent("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut nisl a ligula eleifend finibus non quis justo. Duis eu interdum nulla. Nullam mollis leo vestibulum, rhoncus nulla in, interdum magna. Morbi in metus sit amet ligula tempus pharetra. Sed ac urna quis sapien maximus fermentum. Nunc velit dui, finibus in ultrices in, blandit eget massa. Praesent in mi faucibus, posuere nisl ut, pulvinar urna. In hac habitasse platea dictumst. Nam aliquet convallis augue id dignissim. Maecenas ac congue mauris.");
+        const field = id.replaceAll(' ', '_');
+        setInfoContent(fieldDescriptions[field]);
         setInfoHeader(id);
         setMapSource('');
         console.log("setting modelisOpen to true")
@@ -190,6 +212,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
         const randomTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
         setTimeOfImplementation(randomTime);
     };
+
     const getRandomDate = () => {
         const start = new Date(2022, 0, 1); // Start date (January 1, 2022)
         const end = new Date(); // End date (today)
@@ -435,8 +458,8 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                 </div>
                 {/* Groups */}
                 <div className="mb-3">
-                    <label htmlFor="groups" className="form-label">Assgined Groups</label>
-                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Groups')}>info</i>
+                    <label htmlFor="groups" className="form-label">Assigned Groups</label>
+                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Assigned Groups')}>info</i>
                     <div id="groups">
                         {groupsForOrganization.map((groupName, index) => {
                             return (
@@ -460,7 +483,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                 {/* State of Change Notification */}
                 <div className="mb-3" style={{ display: props?.isNewCN && hideFieldsForNew ? 'none' : 'unset' }}>
                     <label htmlFor="state" className="form-label">State of Change Notification</label>
-                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('State')}>info</i>
+                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Change Notification State')}>info</i>
                     <input
                         type="text"
                         disabled
@@ -469,18 +492,6 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                         onChange={(e) => setCNState(e.target.value)}
                     />
                 </div>
-                {/* <div className="mb-3">
-                    <label htmlFor="topic" className="form-label">Change Topic</label>
-                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Change Topic')}>info</i>
-                    <input
-                        type="text"
-                        disabled = {props?.isNewCN == false}
-                        className="form-control"
-                        value={changeTopic}
-                        onChange={(e) => setChangeTopic(e.target.value)}
-                    />
-                </div> */}
-
                 {/* ChangeTopic */}
                 <div className="mb-3">
                     <label htmlFor="topic" className="form-label">Change Topic</label>
@@ -521,8 +532,8 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                 </div>
                 {/* Time of Implementation */}
                 <div className="mb-3">
-                    <label htmlFor="timeOfImplementation" className="form-label">Time of Implementation</label>
-                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Time of Implementation')}>info</i>
+                    <label htmlFor="timeOfImplementation" className="form-label">Date of Implementation</label>
+                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Date of Implementation')}>info</i>
                     <input
                         type="date"
                         disabled={props?.isNewCN == false}
@@ -547,7 +558,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                 {/* Category */}
                 <div className="mb-3">
                     <label htmlFor="category" className="form-label">Category</label>
-                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Category')}>info</i>
+                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Change Category')}>info</i>
                     <select className='form-control'
                         value={selectedChangeCategory}
                         disabled={props?.isNewCN == false}
