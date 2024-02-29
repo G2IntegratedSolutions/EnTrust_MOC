@@ -246,7 +246,7 @@ const MyChangeNotifications = () => {
                                                 owner: getLastValueInArray(cn.owner),
                                                 approver: getLastValueInArray(cn.approver),
                                                 shortReasonForChange: getLastValueInArray(cn.shortReasonForChange),
-                                                groups: cn.groups,
+                                                groups: getLastValueInArray(cn.groups),
                                                 cnState: getLastValueInArray(cn.cnState),
                                                 changeTopic: getLastValueInArray(cn.changeTopic),
                                                 dateOfCreation: getLastValueInArray(cn.dateOfCreation),
