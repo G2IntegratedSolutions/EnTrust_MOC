@@ -216,7 +216,7 @@ const CreateChangeNotification: React.FC = () => {
                     />
                 </div>
                 <div className="mb-3">
-                    <label htmlFor="timeOfImplementation" className="form-label">Time of Implementation</label>
+                    <label htmlFor="timeOfImplementation" className="form-label">Date of Implementation</label>
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Time of Implementation')}>info</i>
                     <input
                         type="time"
