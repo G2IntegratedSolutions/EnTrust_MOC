@@ -132,6 +132,11 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
             setSelectedChangeType(getLastInArray(cn, 'changeType'));
             setCategory(getLastInArray(cn, 'category'));
             setSelectedChangeCategory(getLastInArray(cn, 'category'));
+            setDescriptionOfChange(getLastInArray(cn, 'descriptionOfChange'));
+            setImpacts(getLastInArray(cn, 'impacts'));
+            setLocation(getLastInArray(cn, 'location'));
+            setNotes(getLastInArray(cn, 'notes'));
+            setAttachments(getLastInArray(cn, 'attachments'));
             // Here we get the pipe delimited groups (e.g. "North"|"South") for this CN
             // Later, when we get all of the groups for the organziation, we pass this in 
             // and it gets used to create the selection state (true or false) for the groups.
