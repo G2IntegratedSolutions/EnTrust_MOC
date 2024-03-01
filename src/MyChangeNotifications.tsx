@@ -200,7 +200,6 @@ const MyChangeNotifications = () => {
 
     const onSeekApproval = async () => {
         try {
-            debugger
             setRequestedToState(CNState.PENDING_APPROVAL);
             setShowStateChange(true);
         }
