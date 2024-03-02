@@ -82,9 +82,9 @@ const Admin = () => {
         <>
             <div className="scrollableContainer" >
                 <div className="iconContainer" onClick={(e) =>  navigate('/') }  ><i className={`material-icons ent-icon`}>home</i><div>Home</div></div>
-                <div className="iconContainer" onClick={(e) => changeDivVis("createNewUser")} ><i className={`material-icons ent-icon`}>person</i><div>Users</div></div>
-                <div className="iconContainer" onClick={(e) => changeDivVis("createNewGroup")}><i className={`material-icons ent-icon`}>groups</i><div>Groups</div></div>
-                <div className="iconContainer" onClick={(e) => changeDivVis("associateUsersAndGroups")}><i className={`material-icons ent-icon`}>person_add_alt_1</i><div>Assign</div></div>
+                <div className="iconContainer" onClick={(e) => changeDivVis("createNewUser")} ><i className={`material-icons ent-icon ent-red`}>person</i><div>Users</div></div>
+                <div className="iconContainer" onClick={(e) => changeDivVis("createNewGroup")}><i className={`material-icons ent-icon ent-green`}>groups</i><div>Groups</div></div>
+                <div className="iconContainer" onClick={(e) => changeDivVis("associateUsersAndGroups")}><i className={`material-icons ent-icon ent-orange`}>person_add_alt_1</i><div>Assign</div></div>
                 {/* <div className="iconContainer" onClick={(e) => changeDivVis("createChangeNotice")}><i className={`material-icons ent-icon`}>keyboard_double_arrow_right</i><div>Change</div></div> */}
             </div>
             <hr></hr>
