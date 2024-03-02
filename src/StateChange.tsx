@@ -4,17 +4,20 @@ import firebase from 'firebase/app';
 import 'firebase/firestore';
 import { toast } from 'react-toastify';
 import { getFirestore, query, where, collection, addDoc, Query, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
-import { OnSeekApprovalCN } from './TransitionEvents';
+import { OnSeekApprovalCN, OnApproveCN } from './TransitionEvents';
 import { useAuth } from './AuthContext';
 
 
 interface StateChangeProps {
     changeNotification: ChangeNotification | null;
-    toState: string;
+    toState: CNState;
+    newOwner: string;
     setShowStateChange: React.Dispatch<React.SetStateAction<boolean>>;
 }
-
-const StateChange: React.FC<StateChangeProps> = ({ changeNotification, toState, setShowStateChange }) => {
+const getLastValueInArray = (arr: any[]) => {
+    return arr[arr.length - 1].value;
+}
+const StateChange: React.FC<StateChangeProps> = ({ changeNotification, toState, newOwner, setShowStateChange }) => {
     const authContext = useAuth();
     const [emailNotes, setEmailNotes] = React.useState('');
 
@@ -29,12 +32,23 @@ const StateChange: React.FC<StateChangeProps> = ({ changeNotification, toState, 
             querySnapshot.forEach((doc) => {
                 let newDoc = { ...doc.data() };//name: newName, description: newDescription, id: currentGroup.id, organization: currentGroup.organization}
                 let cnState = newDoc.cnState;
-                cnState.push({ value: CNState.PENDING_APPROVAL, timeStamp: Date.now() });
+                cnState.push({ value: toState, timeStamp: Date.now() });
                 newDoc.cnState = cnState;
+                
+                newDoc.latestState = toState;
                 updateDoc(doc.ref, newDoc).then(() => {
                     //refreshUsersAndGroupsInOrg();
                     toast.success('Change Notification successfully updated!');
-                    OnSeekApprovalCN( changeNotification, authContext.user,emailNotes);
+                    switch (toState) {
+                        case CNState.PENDING_APPROVAL:
+                            OnSeekApprovalCN(changeNotification, authContext.user, emailNotes);
+                            newDoc.latestOwner = getLastValueInArray(changeNotification?.approver??[]);
+                            break;
+                        case CNState.APPROVED:
+                            OnApproveCN(changeNotification, authContext.user, emailNotes);
+
+                            break;
+                    }
                 }).catch((error) => {
                     toast.error('Error updating Change Notification: ' + error);
                     console.error('Error updating group:', error);
@@ -54,13 +68,12 @@ const StateChange: React.FC<StateChangeProps> = ({ changeNotification, toState, 
                 <p>You can optionally include text that will be sent to registered email/text recipents:</p>
                 <textarea onChange={(e) => setEmailNotes(e.target.value)} placeholder='Enter detail about this change - they will be sent to the email/text recipients and optionally become a permanent part of the CN.' style={{ width: '100%', height: '25vw' }}></textarea>
             </p>
-            <div style={{marginLeft:'0px'}} className=""  >
+            <div style={{ marginLeft: '0px' }} className=""  >
                 <input
                     checked={true}
                     className="form-check-input"
                     id='includeInCN'
                     type="checkbox"
-
                 />
                 <label style={{ marginLeft: '4px' }} className="form-check-label" htmlFor='includeInCN'>
                     Save these notes in the database as part of the CN.

@@ -647,7 +647,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
             </form>
             {props?.isNewCN &&
                 <>
-                    <button className="btn btn-primary" onClick={handleCreateCN} >Create Change Notification</button>
+                    <button disabled={approver === 'UNSET'} className="btn btn-primary" onClick={handleCreateCN} >Create Change Notification</button>
                     <button className="btn btn-primary" onClick={() => props?.onShowDetailsFormDismissed()} >Cancel</button>
                 </>
             }
