@@ -60,7 +60,6 @@ const Login: React.FC = () => {
           roles.push('Stakeholder');
         }
         if (roles.length === 1) {
-          debugger;
           login(email, doc.data().UserName, doc.data().isAdmin, doc.data().isApprover, doc.data().isCreator, doc.data().isStakeholder, doc.data().organization, userCred.user.uid, doc.data().firstName, doc.data().lastName);
           navigate('/');
         }
