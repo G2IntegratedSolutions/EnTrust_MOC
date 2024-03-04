@@ -1,7 +1,7 @@
 import { ChangeNotification, User } from "./Interfaces";
 import { getFirestore, collection, query, where, getDocs, addDoc } from '@firebase/firestore';
 // Sends on Create CN Email
-export const OnCreateCN = async (cn: ChangeNotification|any, user: any) => {
+export const OnCreateCN = async (cn: ChangeNotification | any, user: any) => {
     const db = getFirestore();
     const mail = {
         to: user.email,
@@ -16,12 +16,12 @@ export const OnCreateCN = async (cn: ChangeNotification|any, user: any) => {
         }
     }
     const docRef = await addDoc(collection(db, 'mail'), mail);
-    
+
 }
 const getLastValueInArray = (arr: any[]) => {
     return arr[arr.length - 1].value;
 }
-const commonFields = (cn: ChangeNotification|any, user: any,emailNotes: string) => {
+const commonFields = (cn: ChangeNotification | any, user: any, emailNotes: string) => {
     return `
     <p>Change Type: ${cn.changeType[0].value}</p>
     <p>Change Topic: ${cn.changeTopic[0].value}</p>
@@ -32,7 +32,23 @@ const commonFields = (cn: ChangeNotification|any, user: any,emailNotes: string) 
     <p>${emailNotes}</p>`
 }
 
-export const OnApproveCN = async (cn: ChangeNotification|any, user: any, emailNotes: string) => {
+//Also passed in is an array of approvers to email that were chosen by the primary approver
+export const OnUnderReviewCN = async (cn: ChangeNotification | any, user: any, approvers: string[], emailNotes: string) => {
+    const recipients = approvers.join(";");
+    const html = `
+    <h1>Request Review for Change Notification</h1>
+    <hr>
+    <p>A Change Notification (CN) created by ${cn.owner[0].value} is currently pending approval by ${cn.approver[0].value}.
+    They are seeking your peer review of the CN. Please log into ENTRUST Moc Manager and 
+    search for <b>Moc Number ${cn.mocNumber}</b>.  Please reach out to ${cn.approver[0].value} directly with your
+    concerns, questions, or comments.   </p>
+    ${commonFields(cn, user, emailNotes)}`;
+    const subject = `Request Reivew for Change Notification ${cn.mocNumber}`;
+    sendEmail(recipients, subject, html);
+}
+
+
+export const OnApproveCN = async (cn: ChangeNotification | any, user: any, emailNotes: string) => {
 
     const organization = cn.organization;
     const groups = getLastValueInArray(cn.groups);
@@ -40,13 +56,13 @@ export const OnApproveCN = async (cn: ChangeNotification|any, user: any, emailNo
     let usersToEmail: string[] = [];
     const db = getFirestore();
     const usersCollection = collection(db, 'Users');
-    for (let i = 0 ; i < groupArray.length; i++) {
-        const userQuery = query(usersCollection, where("organization", "==", organization), where("groups", "array-contains" , groupArray[i]));
+    for (let i = 0; i < groupArray.length; i++) {
+        const userQuery = query(usersCollection, where("organization", "==", organization), where("groups", "array-contains", groupArray[i]));
         const userSnap = await getDocs(userQuery).then(async (querySnapshot) => {
             querySnapshot.forEach((doc) => {
                 usersToEmail.push(doc.data().email)
             });
-            
+
         });
     }
     let emailString = usersToEmail.join(";");
@@ -60,10 +76,10 @@ export const OnApproveCN = async (cn: ChangeNotification|any, user: any, emailNo
      any questions you may have. </p>
     ${commonFields(cn, user, emailNotes)}`;
     const subject = `Request Acknowledgment for Change Notification ${cn.mocNumber}`;
-    sendEmail(emailString, subject, html) ; //Check to ensure two users are being returned
+    sendEmail(emailString, subject, html); //Check to ensure two users are being returned
 }
 
-export const OnSeekApprovalCN = async (cn: ChangeNotification|any, user: any, emailNotes: string) => {
+export const OnSeekApprovalCN = async (cn: ChangeNotification | any, user: any, emailNotes: string) => {
     const html = `
     <h1>Request Approval for Change Notification</h1>
     <hr>
@@ -74,7 +90,7 @@ export const OnSeekApprovalCN = async (cn: ChangeNotification|any, user: any, em
     ${commonFields(cn, user, emailNotes)}`;
     const subject = `Request Approval for Change Notification ${cn.mocNumber}`;
     sendEmail(cn.approver[0].value, subject, html);
-    }
+}
 
 export const sendEmail = async (to: string, subject: string, html: string) => {
     const db = getFirestore();
@@ -86,5 +102,5 @@ export const sendEmail = async (to: string, subject: string, html: string) => {
         }
     }
     const docRef = await addDoc(collection(db, 'mail'), mail);
-    
+
 }

@@ -12,8 +12,11 @@ import 'firebase/firestore';
 import { toast } from 'react-toastify';
 import { getFirestore, query, where, collection, addDoc, Query, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import StateChange from './StateChange';
+import { auth } from './firebaseConfig';
 
 const MyChangeNotifications = () => {
+
+
     const scrollableContainerRef = useRef(null);
     const navigate = useNavigate();
     const columns = ['MOC#', 'Creator', 'Owner', 'Approver', 'Short Description', 'Groups', 'State', 'Topic', 'Creation Date', 'Publication Date', 'Date of Implementation', 'Required Date', 'Category', 'Change Type', 'Long Description', 'Impacts', 'Location', 'Notes', 'Attachments'];
@@ -34,6 +37,8 @@ const MyChangeNotifications = () => {
     let newOpacityArray = new Array(16).fill(0.45);
     //const [iconDisplayState, setIconDisplayState] = useState<number[]>(newOpacityArray)
     const authContext = useAuth();
+    
+    //let approvers: string[] = [];
     const [currentUserEmail, setCurrentUserEmail] = useState(authContext.user?.email);
     const [cnsForThisUser, setCnsForThisUser] = useState<ChangeNotification[]>([]);
     const [showDetailForm, setShowDetailForm] = useState(false);
@@ -48,6 +53,37 @@ const MyChangeNotifications = () => {
     //setRequestedMocID is also used when the user clicks on a CN in the table.
     //RequestedMocID is used to populate the details form with CN data when isNewCN is false.
     const [requestedMocID, setRequestedMocID] = useState('');
+
+    const [approvers,setApprovers] = useState<string[]>([]);
+    useEffect(() => {
+        const organization = authContext.user?.organization;
+        const db = getFirestore();
+        const usersCollection = collection(db, 'Users');
+        const qApprovers = query(usersCollection, where("organization", "==", organization), where("isApprover", "==", true));
+        const orgApprovers: string[] = []
+        const userSnap = getDocs(qApprovers).then(async (querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+                if(doc.data().email !== authContext.user?.email){
+                    orgApprovers.push(doc.data().email);
+                }
+            });
+            console.log(orgApprovers)
+            //approvers = orgApprovers;
+            setApprovers(orgApprovers)
+        })
+    }, []);
+
+    // useEffect(() => {
+    //     //Get the approvers for this organization - when transitioning to Under review, the primary approver will 
+    //     //select one or more approvers to review the CN. 
+    //    
+    //    let usersToEmail: string[] = [];
+    //    
+    //    
+    //    
+    //    
+    //     querySnapshot.forEach((doc) => {
+    //    
 
     const getLastValueInArray = (arr: any[]) => {
         return arr[arr.length - 1].value;
@@ -102,7 +138,7 @@ const MyChangeNotifications = () => {
                         const fields = ["owner", "approver", "shortReasonForChange", "groups", "cnState", "changeTopic",
                             "dateOfCreation", "dateOfPublication", "timeOfImplementation", "requiredDateOfCompletion",
                             "category", "changeType", "descriptionOfChange", "impacts", "location", "notes", "attachments"];
-                            for (const field of fields) {
+                        for (const field of fields) {
                             const array = docData[field];
 
                             if (Array.isArray(array) && array.length > 0) {
@@ -176,7 +212,8 @@ const MyChangeNotifications = () => {
     }
 
     const onReviewCN = async () => {
-        setRequestedToState(CNState.PENDING_APPROVAL);
+        console.log(approvers);
+        setRequestedToState(CNState.UNDER_REVIEW);
         setShowStateChange(true);
     }
 
@@ -192,7 +229,7 @@ const MyChangeNotifications = () => {
     return (
         <>
             {showStateChange ?
-                <StateChange changeNotification={activeCN} toState={requestedToState} newOwner={newOwner} setShowStateChange={setShowStateChange} /> :
+                <StateChange changeNotification={activeCN} toState={requestedToState} approvers={approvers} newOwner={newOwner} setShowStateChange={setShowStateChange} /> :
                 <>
                     {(cnsForThisUser.length > 0 || authContext.user?.isCreator == true) && (showTable) ? (
                         <div className="scrollableContainer" ref={scrollableContainerRef} >
