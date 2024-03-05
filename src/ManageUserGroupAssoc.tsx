@@ -28,7 +28,6 @@ const ManagerUserGroupAssoc: React.FC<ManageUserGroupAssocProps> = ({ usersInOrg
     const [selectedGroupMembersip, setSelectedGroupMembership] = useState<string>('');
 
     const handleSelectedUserEmail = async (e: ChangeEvent<HTMLSelectElement>) => {
-        debugger;
         setSelectedUserEmail(e.target.value);
     }
 
@@ -76,13 +75,13 @@ const ManagerUserGroupAssoc: React.FC<ManageUserGroupAssocProps> = ({ usersInOrg
 
     const handleAssignToGroup = async () => {
         console.log("Assigning user to group")
-        // ebugger
+        let currentOrg = authContext.user?.organization;
         let groupToAdd = selectedGroup
         if (groupToAdd === '') {
-            groupToAdd = groupsInOrg[0].name;
+            groupToAdd = currentOrg + "_" + groupsInOrg[0].name;
         }
         let currentUser = selectedUserEmail;
-        let currentOrg = authContext.user?.organization;
+        
         const db = getFirestore();
         const usersCollection = collection(db, 'Users');
         // Query the users collection for the selected user with an organization matching currentOrg
@@ -92,10 +91,11 @@ const ManagerUserGroupAssoc: React.FC<ManageUserGroupAssocProps> = ({ usersInOrg
                 // Get the user's groups
                 let groups = doc.data().groups;
                 // Remove the selected group from the user's groups
-                if (groups.includes(groupToAdd) == false) {
+                if (groups.includes( groupToAdd) == false) {
                     let newGroups = [...groups, groupToAdd];
                     // Update the user's groups in the database
                     const userRef = doc.ref;
+                    debugger;
                     await updateDoc(userRef, { groups: newGroups });
                     setGroupsForSelectedUser(newGroups);
                 }

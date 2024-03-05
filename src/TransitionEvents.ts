@@ -48,7 +48,7 @@ export const OnUnderReviewCN = async (cn: ChangeNotification | any, user: any, a
 }
 
 
-export const OnApproveCN = async (cn: ChangeNotification | any, user: any, emailNotes: string) => {
+export const OnApproveCN = async (cn: ChangeNotification , user: any, emailNotes: string) => {
 
     const organization = cn.organization;
     const groups = getLastValueInArray(cn.groups);
@@ -69,10 +69,10 @@ export const OnApproveCN = async (cn: ChangeNotification | any, user: any, email
     const html = `
     <h1>Change Notification!</h1>
     <hr>
-    <p>A Change Notification (CN) has been approved by ${cn.owner[0].value} and, as an assigned stakeholder,
+    <p>A Change Notification (CN) has been approved by ${getLastValueInArray(cn.approver)} and, as an assigned stakeholder,
      is awaiting your acknowledgment.  You are kindly requested to follow the link below and log into ENTRUST MoC Manager 
      where you can review and acknowledge your understanding of the change in question. If necessary, you can also raise 
-     an official objection to the change.  You may alos reach out to  ${cn.owner[0].value} or  ${cn.creator[0].value} with 
+     an official objection to the change.  You may also reach out to   ${getLastValueInArray(cn.owner)} or   ${cn.creator} with 
      any questions you may have. </p>
     ${commonFields(cn, user, emailNotes)}`;
     const subject = `Request Acknowledgment for Change Notification ${cn.mocNumber}`;

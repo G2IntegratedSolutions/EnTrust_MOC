@@ -13,6 +13,8 @@ import { toast } from 'react-toastify';
 import { getFirestore, query, where, collection, addDoc, Query, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import StateChange from './StateChange';
 import { auth } from './firebaseConfig';
+import { group } from 'console';
+import { act } from 'react-dom/test-utils';
 
 const MyChangeNotifications = () => {
 
@@ -22,7 +24,7 @@ const MyChangeNotifications = () => {
     const columns = ['MOC#', 'Creator', 'Owner', 'Approver', 'Short Description', 'Groups', 'State', 'Topic', 'Creation Date', 'Publication Date', 'Date of Implementation', 'Required Date', 'Category', 'Change Type', 'Long Description', 'Impacts', 'Location', 'Notes', 'Attachments'];
     const columnWidths = [100, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200]; // Adjust these values as needed
     const [selectedRows, setSelectedRows] = useState<number[]>([]);
-    const [activeCN, setActiveCN] = useState<ChangeNotification | null>(null);
+    const [activeCN, setActiveCN] = useState<ChangeNotification|null >(null);
     //When the state is changed, often their will be a new owner (e.g. the selected approver or if edits 
     //are required, a creator.  When a CN is approved, the owner becomes approvers and the stakeholders group names (e.g. ACME_North, ACME_South, etc.)
     const [newOwner, setNewOwner] = useState('');
@@ -37,7 +39,7 @@ const MyChangeNotifications = () => {
     let newOpacityArray = new Array(16).fill(0.45);
     //const [iconDisplayState, setIconDisplayState] = useState<number[]>(newOpacityArray)
     const authContext = useAuth();
-    
+
     //let approvers: string[] = [];
     const [currentUserEmail, setCurrentUserEmail] = useState(authContext.user?.email);
     const [cnsForThisUser, setCnsForThisUser] = useState<ChangeNotification[]>([]);
@@ -54,7 +56,7 @@ const MyChangeNotifications = () => {
     //RequestedMocID is used to populate the details form with CN data when isNewCN is false.
     const [requestedMocID, setRequestedMocID] = useState('');
 
-    const [approvers,setApprovers] = useState<string[]>([]);
+    const [approvers, setApprovers] = useState<string[]>([]);
     useEffect(() => {
         const organization = authContext.user?.organization;
         const db = getFirestore();
@@ -63,7 +65,7 @@ const MyChangeNotifications = () => {
         const orgApprovers: string[] = []
         const userSnap = getDocs(qApprovers).then(async (querySnapshot) => {
             querySnapshot.forEach((doc) => {
-                if(doc.data().email !== authContext.user?.email){
+                if (doc.data().email !== authContext.user?.email) {
                     orgApprovers.push(doc.data().email);
                 }
             });
@@ -99,6 +101,7 @@ const MyChangeNotifications = () => {
     //loads or when the CN Details form in newCN mode creates a new CN. 
     useEffect(() => {
         let org = authContext.user?.organization;
+        // ebugger;
         if (currentUserEmail && org) {
             let indexOfNewlyCreatedCNtoSelect = -1;
             const db = getFirestore();
@@ -106,6 +109,7 @@ const MyChangeNotifications = () => {
             const qUsers = query(usersCollection, where("organization", "==", org), where("email", "==", currentUserEmail));
             const userSnapshot = getDocs(qUsers).then(async (querySnapshot) => {
                 const selectedUserInOrg = querySnapshot.docs.map(doc => doc.data());
+                let docs: any[] = [];
                 if (selectedUserInOrg.length > 0) {
                     // ebugger;
                     const groupsForUser = selectedUserInOrg[0].groups;
@@ -115,15 +119,29 @@ const MyChangeNotifications = () => {
                             where("organization", "==", org),
                             where("latestOwner", "==", authContext.user?.email)
                         );
+                        const querySnapshot = await getDocs(q);
+                        // ebugger;
+                        docs = querySnapshot.docs;
                     }
                     else {
-                        // Because this is a stakeholder, we need more logic to determine what 
-                        // groups this user is in and then we need to query for CNs that are in those groups.
-                        return;
+                        const cnCollection = collection(db, 'changeNotifications');
+                        for (let gr of groupsForUser) {
+
+                            if (gr !== "NONE") {
+                                let noOrgGroup = gr.substring(gr.indexOf('_') + 1);
+                                console.log("Looking for CNs for group: " + noOrgGroup);
+                                const qCNQuery = query(cnCollection, where("organization", "==", org), where("latestGroups", "array-contains", noOrgGroup));
+                                const cnsForStakeholder = []
+                                await getDocs(qCNQuery).then(async (cnSnapshot) => {
+                                    docs = cnSnapshot.docs;
+                                })
+                            }
+
+
+                        }
+
                     }
-                    const querySnapshot = await getDocs(q);
-                    // ebugger;
-                    const docs = querySnapshot.docs;
+
                     // Initialize an empty array to hold the change notifications
                     let changeNotifications = [];
 
@@ -211,6 +229,12 @@ const MyChangeNotifications = () => {
         setShowStateChange(true);
     }
 
+    const handleAcknowledgeCN = async () => {
+        let x: any = {...activeCN, mocNumber: "Hello"}; // Provide a default empty array value for the 'owner' property
+        setActiveCN(x);
+        debugger;
+    }
+
     const onReviewCN = async () => {
         console.log(approvers);
         setRequestedToState(CNState.UNDER_REVIEW);
@@ -226,6 +250,8 @@ const MyChangeNotifications = () => {
     }
     const onRequestEdit = async () => {
     }
+
+    
     return (
         <>
             {showStateChange ?
@@ -239,7 +265,7 @@ const MyChangeNotifications = () => {
                             <div className="iconContainer ent-requires-selection" onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon ent-orange`}>search</i><div>Search</div></div>
                             {authContext?.user?.isStakeholder && selectedRows.length === 1 && <>
                                 {/* (2) ACKNOWLEDGE - stakeholders can acknowledge or unacknowledge*/}
-                                <div className="iconContainer ent-requires-selection" onClick={(e) => navigate('/')}  ><i className={`material-icons ent-icon ent-green`}>star</i><div>Acknowledge</div></div>
+                                <div className="iconContainer ent-requires-selection" onClick={(e) => handleAcknowledgeCN()}  ><i className={`material-icons ent-icon ent-green`}>star</i><div>Acknowledge</div></div>
                                 {/* (3) OBJECT - stakeholders can object to a CN or remove their objection*/}
                                 <div className="iconContainer ent-requires-selection" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-purple`}>emoji_people</i><div>Object to CN</div></div>
                             </>}
@@ -256,13 +282,16 @@ const MyChangeNotifications = () => {
                                 </>}
                             </>}
                             {authContext?.user?.isApprover && <>
+
                                 {selectedRows.length === 1 && <>
-                                    {getLastValueInArray(activeCN?.cnState ?? []) === CNState.PENDING_APPROVAL && <>
-                                        <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => onReviewCN()}  ><i className={`material-icons ent-icon ent-green`}>visibility</i><div>Review CN</div></div>
-                                        <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => onApproveCN()}><i className={`material-icons ent-icon ent-purple`}>done</i><div>Approve CN</div></div>
-                                        <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => onRejectCN()}><i className={`material-icons ent-icon ent-red`}>delete</i><div>Reject CN</div></div>
-                                        <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => onRequestEdit()} ><i className={`material-icons ent-icon ent-blue`}>draw</i><div>Request Edit</div></div>
-                                    </>}
+                                    {(getLastValueInArray(activeCN?.cnState ?? []) === CNState.PENDING_APPROVAL) || (getLastValueInArray(activeCN?.cnState ?? []) === CNState.UNDER_REVIEW) ?
+                                        <>
+
+                                            <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => onReviewCN()}  ><i className={`material-icons ent-icon ent-green`}>visibility</i><div>Review CN</div></div>
+                                            <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => onApproveCN()}><i className={`material-icons ent-icon ent-purple`}>done</i><div>Approve CN</div></div>
+                                            <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => onRejectCN()}><i className={`material-icons ent-icon ent-red`}>delete</i><div>Reject CN</div></div>
+                                            <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => onRequestEdit()} ><i className={`material-icons ent-icon ent-blue`}>draw</i><div>Request Edit</div></div>
+                                        </> : <></>}
                                     {getLastValueInArray(activeCN?.cnState ?? []) === CNState.ACTIVATED && <>
                                         <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-orange`}>calendar_month</i><div>Reschedule CN</div></div>
                                         <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>pause</i><div>Pause CN</div></div>
