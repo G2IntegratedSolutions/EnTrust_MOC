@@ -21,9 +21,10 @@ const MyChangeNotifications = () => {
 
     const scrollableContainerRef = useRef(null);
     const navigate = useNavigate();
-    const columns = ['MOC#', 'Creator', 'Owner', 'Approver', 'Short Description', 'Groups', 'State', 'Topic', 'Creation Date', 'Publication Date', 'Date of Implementation', 'Required Date', 'Category', 'Change Type', 'Long Description', 'Impacts', 'Location', 'Notes', 'Attachments'];
-    const columnWidths = [100, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200]; // Adjust these values as needed
+    const columns = ['X', 'MOC#', 'Creator', 'Owner', 'Approver', 'Short Description', 'Groups', 'State', 'Topic', 'Creation Date', 'Publication Date', 'Date of Implementation', 'Required Date', 'Category', 'Change Type', 'Long Description', 'Impacts', 'Location', 'Notes', 'Attachments'];
+    const columnWidths = [25, 100, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200]; // Adjust these values as needed
     const [selectedRows, setSelectedRows] = useState<number[]>([]);
+    const [wasAcknowledged, setWasAcknowledged] = useState([false, false]);
     const [activeCN, setActiveCN] = useState<ChangeNotification|null >(null);
     //When the state is changed, often their will be a new owner (e.g. the selected approver or if edits 
     //are required, a creator.  When a CN is approved, the owner becomes approvers and the stakeholders group names (e.g. ACME_North, ACME_South, etc.)
@@ -150,6 +151,7 @@ const MyChangeNotifications = () => {
                         // ebugger;
                         let docData = docs[i].data();
                         let latest: any = {};
+                        latest["X"] = 'B'
                         latest["mocNumber"] = docData["mocNumber"];
                         latest["creator"] = docData["creator"];
                         latest["organization"] = org;
@@ -230,9 +232,10 @@ const MyChangeNotifications = () => {
     }
 
     const handleAcknowledgeCN = async () => {
-        let x: any = {...activeCN, mocNumber: "Hello"}; // Provide a default empty array value for the 'owner' property
-        setActiveCN(x);
-        debugger;
+        const indexToToggle = selectedRows[0];
+        let newWasAcknowledged = [...wasAcknowledged];
+        newWasAcknowledged[indexToToggle] = !newWasAcknowledged[indexToToggle];
+        setWasAcknowledged(newWasAcknowledged);
     }
 
     const onReviewCN = async () => {
@@ -251,7 +254,7 @@ const MyChangeNotifications = () => {
     const onRequestEdit = async () => {
     }
 
-    
+
     return (
         <>
             {showStateChange ?
@@ -335,6 +338,7 @@ const MyChangeNotifications = () => {
                                             <tbody>
                                                 {cnsForThisUser.map((cn: ChangeNotification, rowIndex: number) => {
                                                     const rowDataObject = {
+                                                        X: wasAcknowledged[rowIndex] ? '*' : '',
                                                         mocNumber: cn.mocNumber,
                                                         creator: cn.creator,
                                                         owner: getLastValueInArray(cn.owner),
