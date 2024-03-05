@@ -254,7 +254,22 @@ const MyChangeNotifications = () => {
     const onRequestEdit = async () => {
     }
 
-
+    const formatDataForTable = (data: any) => {
+        if (data !== undefined){
+            if(data === "*"){
+                return <i className={`material-icons ent-icon ent-green`}>star</i>
+            }
+            if(data.toString().length > 50){
+                return data.toString().slice(0, 50) + '...'
+            }
+            else {
+                return data.toString()
+            }
+        }
+        else{
+            return '??'
+        }
+    }
     return (
         <>
             {showStateChange ?
@@ -364,12 +379,13 @@ const MyChangeNotifications = () => {
                                                         <tr key={rowIndex} onClick={() => handleRowClick(rowIndex)} style={selectedRows.includes(rowIndex) ? { color: 'white', backgroundColor: 'var(--ent-blue)' } : {}}>
                                                             {Object.values(rowDataObject).map((data, index) => (
                                                                 <td key={index} className="column" style={{ minWidth: columnWidths[index] }}>
-                                                                    {data !== undefined
+                                                                    {formatDataForTable(data)}
+                                                                    {/* {data !== undefined
                                                                         ? data.toString().length > 50
                                                                             ? data.toString().slice(0, 50) + '...'
                                                                             : data.toString()
                                                                         : null
-                                                                    }
+                                                                    }  */}
                                                                 </td>
                                                             ))}
                                                         </tr>
