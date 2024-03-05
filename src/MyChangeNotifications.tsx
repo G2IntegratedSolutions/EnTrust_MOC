@@ -21,7 +21,7 @@ const MyChangeNotifications = () => {
 
     const scrollableContainerRef = useRef(null);
     const navigate = useNavigate();
-    const columns = ['X', 'MOC#', 'Creator', 'Owner', 'Approver', 'Short Description', 'Groups', 'State', 'Topic', 'Creation Date', 'Publication Date', 'Date of Implementation', 'Required Date', 'Category', 'Change Type', 'Long Description', 'Impacts', 'Location', 'Notes', 'Attachments'];
+    const columns = [' ', 'MOC#', 'Creator', 'Owner', 'Approver', 'Short Description', 'Groups', 'State', 'Topic', 'Creation Date', 'Publication Date', 'Date of Implementation', 'Required Date', 'Category', 'Change Type', 'Long Description', 'Impacts', 'Location', 'Notes', 'Attachments'];
     const columnWidths = [25, 100, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200]; // Adjust these values as needed
     const [selectedRows, setSelectedRows] = useState<number[]>([]);
     const [wasAcknowledged, setWasAcknowledged] = useState([false, false]);
