@@ -19,6 +19,7 @@ interface ChangeNotificationDetailFormProps {
     isNewCN: boolean;
     onShowDetailsFormDismissed: () => void;
     setRequestedMocID: React.Dispatch<React.SetStateAction<string>>;
+    approvers: string[];
 }
 
 
@@ -28,7 +29,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
 
     useEffect(() => {
         setCN(props?.changeNotice ?? null);
-        getApprovers();
+        //getApprovers();
     }, [props?.changeNotice?.mocNumber]);
 
     const hideFieldsForNew = true;
@@ -39,7 +40,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
     const month = ("0" + (date.getMonth() + 1)).slice(-2); // Months are 0-indexed in JavaScript
     const day = ("0" + date.getDate()).slice(-2);
     const formattedDate = `${year}-${month}-${day}`;
-    const [approvers, setApprovers] = useState<string[]>([]);
+    const approvers = props?.approvers ?? [];
 
     //The following state variables are used to manage the form state for
     //fields that have domains of values that are not free text
@@ -270,21 +271,6 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
         setGroupSelectionState({ ...groupSelectionState, [groupName]: e.target.checked });
     }
 
-    const getApprovers = async () => {
-        const organization = authContext.user?.organization;
-        const db = getFirestore();
-        const usersCollection = collection(db, 'Users');
-        const qApprovers = query(usersCollection, where("organization", "==", authContext.user?.organization), where("isApprover", "==", true));
-        const approverSnapshot = getDocs(qApprovers).then(async (querySnapshot) => {
-            const approvers: string[] = ["UNSET"];
-            querySnapshot.forEach((doc) => {
-                const user = doc.data() as User;
-                approvers.push(user.email);
-            });
-            setApprovers(approvers);
-        });
-    };
-
     const getGroupsForOrganization = async (groupsForThisCN = '') => {
         const existingSelectedGroups = groupsForThisCN.split(('|'))
         const organization = authContext.user?.organization;
@@ -308,7 +294,6 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
             setGroupSelectionState(obj);
         });
     };
-
 
     const formatCnField = (newValue: string): { timeStamp: number, value: string }[] => {
         return [{
