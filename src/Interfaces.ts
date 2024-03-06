@@ -71,7 +71,7 @@ export type ChangeNotification = {
     onPausedNotes: string[],
     onRescheduledNotes: string[],
     onCancelledNotes: string[],
-    acknowledgements: string[],
+    acknowledgements:  Record<string, boolean>,
     objections: string[],
     latestOwner: string,
     latestApprover: string,

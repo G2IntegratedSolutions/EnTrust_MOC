@@ -15,7 +15,7 @@ import StateChange from './StateChange';
 import { auth } from './firebaseConfig';
 import { group } from 'console';
 import { act } from 'react-dom/test-utils';
-import { getApproversForOrg } from './dataAccess';
+import { getApproversForOrg,acknowledgeActiveCN } from './dataAccess';
 
 const MyChangeNotifications = () => {
 
@@ -65,32 +65,7 @@ const MyChangeNotifications = () => {
             setApprovers(approvers)
         });
 
-        // const db = getFirestore();
-        // const usersCollection = collection(db, 'Users');
-        // const qApprovers = query(usersCollection, where("organization", "==", organization), where("isApprover", "==", true));
-        // const orgApprovers: string[] = []
-        // const userSnap = getDocs(qApprovers).then(async (querySnapshot) => {
-        //     querySnapshot.forEach((doc) => {
-        //         if (doc.data().email !== authContext.user?.email) {
-        //             orgApprovers.push(doc.data().email);
-        //         }
-        //     });
-        //     console.log(orgApprovers)
-        //     //approvers = orgApprovers;
-        //     setApprovers(orgApprovers)
     }, []);
-
-// useEffect(() => {
-//     //Get the approvers for this organization - when transitioning to Under review, the primary approver will 
-//     //select one or more approvers to review the CN. 
-//    
-//    let usersToEmail: string[] = [];
-//    
-//    
-//    
-//    
-//     querySnapshot.forEach((doc) => {
-//    
 
 const getLastValueInArray = (arr: any[]) => {
     return arr[arr.length - 1].value;
@@ -141,8 +116,6 @@ useEffect(() => {
                                 docs = cnSnapshot.docs;
                             })
                         }
-
-
                     }
 
                 }
@@ -170,15 +143,10 @@ useEffect(() => {
                             latest[field as keyof typeof latest] = array; // lastElement;//.value as never;
                         }
                     }
-
                     // Cast the data to a ChangeNotification and add it to the array
                     changeNotifications.push(latest as ChangeNotification);
                     if (latest.mocNumber === requestedMocID) {
                         indexOfNewlyCreatedCNtoSelect = changeNotifications.length - 1;
-
-                        //setSelectedRows([changeNotifications.length - 1]);
-                        //handleRowClick(changeNotifications.length - 1);
-                        //setRefreshCNs('AAAAAAAAAA');
                     }
                 }
                 setCnsForThisUser(changeNotifications);
@@ -240,6 +208,9 @@ const handleAcknowledgeCN = async () => {
     let newWasAcknowledged = [...wasAcknowledged];
     newWasAcknowledged[indexToToggle] = !newWasAcknowledged[indexToToggle];
     setWasAcknowledged(newWasAcknowledged);
+    if (activeCN !== null) {
+        acknowledgeActiveCN(activeCN, newWasAcknowledged[indexToToggle], currentUserEmail ?? '');
+    }
 }
 
 const onReviewCN = async () => {
@@ -255,6 +226,7 @@ const onApproveCN = async () => {
 
 const onRejectCN = async () => {
 }
+
 const onRequestEdit = async () => {
 }
 
@@ -304,11 +276,9 @@ return (
                             </>}
                         </>}
                         {authContext?.user?.isApprover && <>
-
                             {selectedRows.length === 1 && <>
                                 {(getLastValueInArray(activeCN?.cnState ?? []) === CNState.PENDING_APPROVAL) || (getLastValueInArray(activeCN?.cnState ?? []) === CNState.UNDER_REVIEW) ?
                                     <>
-
                                         <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => onReviewCN()}  ><i className={`material-icons ent-icon ent-green`}>visibility</i><div>Review CN</div></div>
                                         <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => onApproveCN()}><i className={`material-icons ent-icon ent-purple`}>done</i><div>Approve CN</div></div>
                                         <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => onRejectCN()}><i className={`material-icons ent-icon ent-red`}>delete</i><div>Reject CN</div></div>
@@ -337,7 +307,6 @@ return (
                     {(showTable) &&
                         <>
                             <h2>Change Notifications</h2>
-
                             {cnsForThisUser.length === 0 ? (
                                 <>
                                     <div>No data to display</div>
@@ -378,7 +347,6 @@ return (
                                                     notes: getLastValueInArray(cn.notes),
                                                     attachments: getLastValueInArray(cn.attachments)
                                                 };
-                                                // ebugger;
                                                 return (
                                                     <tr key={rowIndex} onClick={() => handleRowClick(rowIndex)} style={selectedRows.includes(rowIndex) ? { color: 'white', backgroundColor: 'var(--ent-blue)' } : {}}>
                                                         {Object.values(rowDataObject).map((data, index) => (
@@ -397,9 +365,7 @@ return (
                                             })}
                                         </tbody>
                                     </table>
-
                                 </div>
-
                             )}
                             <hr>
                             </hr>
@@ -414,5 +380,4 @@ return (
     </>
 );
 }
-
 export default MyChangeNotifications;

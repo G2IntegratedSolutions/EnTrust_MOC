@@ -341,7 +341,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                 onRejectedNotes: [],
                 onUpdatesRequiredNotes: [],
                 onCancelledNotes: [],
-                acknowledgements: [],
+                acknowledgements: {},
                 objections: [],
                 latestOwner: owner,
                 latestApprover: approver,
