@@ -13,6 +13,8 @@ import { assertQualifiedTypeIdentifier } from '@babel/types';
 import { OnCreateCN } from './TransitionEvents';
 import { info } from 'console';
 import { doc, getDoc } from 'firebase/firestore';
+import { GetInfoFieldDescriptions } from './dataAccess';
+import { get } from 'http';
 
 interface ChangeNotificationDetailFormProps {
     changeNotice: ChangeNotification | null;
@@ -96,21 +98,12 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
 
     //Get the text for the information icons
     useEffect(() => {
-
-        const db = getFirestore();
-        const infoButtonCollection = collection(db, 'infoButtons');
-        const fieldDescriptionsDoc = doc(db, 'infoButtons', 'fieldDescriptions');
-
-        getDoc(fieldDescriptionsDoc).then((docSnapshot) => {
-            if (docSnapshot.exists()) {
-                setFieldDescriptions(docSnapshot.data());
-
-            } else {
-                // The document does not exist
-                console.log('No such document!');
-            }
-        });
-    }, []);   
+        const fetchData = async () => {
+            const data = await GetInfoFieldDescriptions();
+            setFieldDescriptions(data ?? {});
+        };
+        fetchData();
+    }, []);
 
     useEffect(() => {
         let theMocNumber: string = '';

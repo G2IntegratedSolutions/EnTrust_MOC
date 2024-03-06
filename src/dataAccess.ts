@@ -1,5 +1,5 @@
 import { ChangeNotification } from "./Interfaces";
-import { getFirestore, query, where, collection, addDoc, Query, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { getFirestore, query, where, collection,getDoc, addDoc, Query, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
 
 const db = getFirestore();
@@ -16,6 +16,20 @@ export async function getApproversForOrg(organization: string, emailToExclude: s
         });
     });
     return orgApprovers
+}
+
+
+export async function GetInfoFieldDescriptions(): Promise<Record<string, string> | null> {
+    const infoButtonCollection = collection(db, 'infoButtons');
+    const fieldDescriptionsDoc = doc(db, 'infoButtons', 'fieldDescriptions');
+    const docSnapshot = await getDoc(fieldDescriptionsDoc);
+    if (docSnapshot.exists()) {
+        return docSnapshot.data() as Record<string, string>;
+    } else {
+        // The document does not exist
+        console.log('No such document!');
+        return null;
+    }
 }
 
 export async function acknowledgeActiveCN(activeCN : ChangeNotification, didAcknowledge: boolean, currentUserEmail: string) {
