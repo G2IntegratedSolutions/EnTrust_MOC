@@ -43,23 +43,27 @@ const StateChange: React.FC<StateChangeProps> = ({ changeNotification, toState, 
                 let cnState = newDoc.cnState;
                 cnState.push({ value: toState, timeStamp: Date.now() });
                 newDoc.cnState = cnState;
-
                 newDoc.latestState = toState;
+                if (toState === CNState.PENDING_APPROVAL) {
+                    const lastApprover = getLastValueInArray(changeNotification?.approver ?? []);
+                    newDoc.latestOwner = lastApprover
+                }
                 updateDoc(doc.ref, newDoc).then(() => {
                     //refreshUsersAndGroupsInOrg();
                     toast.success('Change Notification successfully updated!');
                     switch (toState) {
                         case CNState.PENDING_APPROVAL:
                             OnSeekApprovalCN(changeNotification, authContext.user, emailNotes);
-                            newDoc.latestOwner = getLastValueInArray(changeNotification?.approver ?? []);
+                            // const lastApprover = getLastValueInArray(changeNotification?.approver ?? []);
+                            // newDoc.latestOwner = lastApprover
                             break;
                         case CNState.APPROVED:
-                            OnApproveCN(changeNotification, authContext.user, emailNotes);
-
+                            if (changeNotification) {
+                                OnApproveCN(changeNotification, authContext.user, emailNotes);
+                            }
                             break;
                         case CNState.UNDER_REVIEW:
-                            OnUnderReviewCN(changeNotification, authContext.user,approvers, emailNotes);
-
+                            OnUnderReviewCN(changeNotification, authContext.user, approvers, emailNotes);
                             break;
                     }
                 }).catch((error) => {
