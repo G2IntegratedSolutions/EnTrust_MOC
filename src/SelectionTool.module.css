@@ -1,0 +1,39 @@
+.selectionTool {
+    position: absolute;
+    border: 2px solid #000;
+    border-radius: 5px;
+    background-color: var(--ent-light-gray);
+    width: 50vw;
+    left:25vw;
+    top:10vh;
+    z-index: 1000;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.1);
+    transition: all 0.1s;
+    padding:10px;
+    opacity: 1;
+}
+.expression {
+    color: var(--ent-dark-green);
+
+}
+.selectableFields {
+    max-height: 40vh;
+    overflow-y: scroll;
+}
+.selectableFields > div {
+    padding: 5px;
+    cursor: pointer;
+}
+.operatorDropdown{
+    margin-left: 10px;
+    border-radius: 5px;
+    background-color: var(--ent-blue);
+    color: var(--ent-yellow);;
+    margin-bottom: 2px;
+}   
+.enumDropdown{
+    border-radius: 5px;
+    color: var(--ent-blue);;
+    margin-bottom: 2px;
+
+}

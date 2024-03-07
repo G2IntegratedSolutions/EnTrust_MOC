@@ -47,7 +47,7 @@ const HomePage: React.FC = () => {
                         </div>
 
                     </div>
-                    <div className="col-lg-4">
+                    {/* <div className="col-lg-4">
 
                         <div className={`${styles.box} ${styles.orange}`}>
                             <Link to="/admin">
@@ -57,7 +57,7 @@ const HomePage: React.FC = () => {
                             </Link>
                         </div>
 
-                    </div>
+                    </div> */}
                 </div>
 
             </div>

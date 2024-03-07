@@ -343,7 +343,6 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                 latestDescriptionOfChange: descriptionOfChange,
                 latestShortReasonForChange: shortReasonForChange,
             };
-            debugger;
             const db = getFirestore();
             const docRef = await addDoc(collection(db, 'changeNotifications'), cn);
             console.log('New Change Notification added with ID: ', docRef.id);

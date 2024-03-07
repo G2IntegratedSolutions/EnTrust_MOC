@@ -1,3 +1,8 @@
+export const changeCategories = ['SELECT ONE', 'Safety', 'Quality', 'Production', 'Facilities', 'IT', 'HR', 'Finance', 'Other'];
+export const changeTypes = ['SELECT ONE', 'Temporary', 'Permanent', 'Emergency'];
+export const changeTopics = ['SELECT ONE', 'Technical', 'Design', 'Physical', 'Environmental', 'Procedural', 'Operational', 'Maintenance', 'Organizational']
+export const changeStates = ['SELECT ONE','CREATED', 'PENDING_APPROVAL', 'UNDER_REVIEW', 'APPROVED', 'ACTIVATED', 'COMPLETED', 'ARCHIVED', 'REJECTED', 'UPDATES_REQUIRED', 'PAUSED', 'RESCHEDULED', 'CANCELLED']
+
 export enum CNState {
     CREATED = 'CREATED',
     PENDING_APPROVAL = 'PENDING_APPROVAL',
@@ -11,9 +16,12 @@ export enum CNState {
     PAUSED = 'PAUSED',
     RESCHEDULED = 'RESCHEDULED',
     CANCELLED = 'CANCELLED'
-
 }
-
+export interface expression {
+    fieldName: string,
+    operator: string,
+    value: string
+}
 export interface Group {
     id:string,
     name: string;
