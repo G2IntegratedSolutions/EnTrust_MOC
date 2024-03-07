@@ -74,7 +74,6 @@ export async function handleAssignToGroup (selectedUserEmail: string,currentOrg:
                 let newGroups = [...groups, groupToAdd];
                 // Update the user's groups in the database
                 const userRef = doc.ref;
-                debugger;
                 await updateDoc(userRef, { groups: newGroups });
                 setGroupsForSelectedUser(newGroups);
             }
