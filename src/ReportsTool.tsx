@@ -128,30 +128,16 @@ const ReportsTool: React.FC<ReportsToolProps | null> = (props) => {
         const report = words[words.length - 1];
         let labels: string[] = [];
         let data: number[] = [];
-        const localBarGraphData = { labels, datasets: [{ label: report, data, backgroundColor: barColors, borderColor: barColors, borderWidth: 1 }] }
+        const localBarGraphData = { labels, datasets: [{ label: report.toUpperCase() + " REPORT", data, backgroundColor: barColors, borderColor: barColors, borderWidth: 1 }] }
         console.log(cnSateTopicTypeCategory);
         for (let label in cnSateTopicTypeCategory[report]) {
-            localBarGraphData.labels.push(label);
+            localBarGraphData.labels.push(label.toUpperCase());
             if (cnSateTopicTypeCategory[report]) {
                 localBarGraphData.datasets[0].data.push((cnSateTopicTypeCategory[report] as any)[label] as number);
             }
         }
         setBarGraphData(localBarGraphData);
 
-        // switch (report) {
-        //     case 'Type':
-        //         break;
-        //     case 'Topic':
-        //         break;
-        //     case 'State':
-        //         break;
-        //     case 'Category':
-        //         break;
-        //     case 'Stakeholder':
-        //         break;
-
-        // }
-        // console.log(report);
     }
 
     return (<div className={styles.selectionTool}>
@@ -170,7 +156,7 @@ const ReportsTool: React.FC<ReportsToolProps | null> = (props) => {
         </select>
 
         <hr></hr>
-        <Bar data={barGraphData} options={options} />
+        <Bar data={barGraphData} height={80} options={options} />
         <button className='btn btn-primary' onClick={props?.onDismiss}>Dismiss</button>
     </div>)
 }
