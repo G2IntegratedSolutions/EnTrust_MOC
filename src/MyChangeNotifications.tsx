@@ -336,7 +336,7 @@ const MyChangeNotifications = () => {
                                         <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-orange`}>archive</i><div>Archive CN</div></div>
                                     </>}
                                 </>}
-                                {selectedRows.length > 0 && <>
+                                {selectedRows.length > -1 && <>
                                     <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>email</i><div>Send Emails</div></div>
                                     <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-purple`}>bar_chart</i><div>Reports</div></div>
                                 </>}
