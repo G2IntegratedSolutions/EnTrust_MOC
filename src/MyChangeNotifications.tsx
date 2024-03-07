@@ -373,7 +373,7 @@ const MyChangeNotifications = () => {
                                                     ))}
                                                 </tr>
                                             </thead>
-                                            <tbody>
+                                            <tbody >
                                                 {cnsForThisUser.map((cn: ChangeNotification, rowIndex: number) => {
                                                     const rowDataObject = {
                                                         X: wasAcknowledged[rowIndex] ? '*' : '',

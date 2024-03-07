@@ -19,8 +19,12 @@
 .tableContainer {
     overflow-x: auto;
     max-height: 300px;
+    overflow-y: scroll;
 }
-
+tbody {
+ 
+    overflow-y: scroll;
+}
 .column {
     min-width: 200px;
 }

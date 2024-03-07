@@ -3,9 +3,10 @@ import { ChangeNotification, expression } from './Interfaces' // Replace 'path/t
 import styles from './ReportsTool.module.css';
 import React, { useState, useEffect, useRef } from 'react';
 import { changeStates, changeTopics, changeTypes, changeCategories } from './Interfaces';
-import { Bar } from 'react-chartjs-2';
+import { Bar, Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { getLastValueInArray } from './common';
+import 'chart.js/auto'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -34,6 +35,8 @@ const ReportsTool: React.FC<ReportsToolProps | null> = (props) => {
     const [cnSateTopicTypeCategory, setCnStateTopicTypeCategory] = useState<any>();
     const [barData, setBarData] = useState({});
     const [barGraphData, setBarGraphData] = useState({ labels: [], datasets: [] } as any);
+    const [showBarGraph, setShowBarGraph] = useState(false);
+    const [showPieGraph, setShowPieGraph] = useState(false);
 
     // UseEffect iterates through all of the CNs to populate an object that contains all four
     // type of bar graph reports (state, topic, type, category). This object is then used to
@@ -84,7 +87,18 @@ const ReportsTool: React.FC<ReportsToolProps | null> = (props) => {
     }, []);
 
     const chartRef = useRef(null);
-    
+
+    //Sample Pie Data
+    const pieData = {
+        labels: ['Acknowledged', 'Not-Acknowledged'],
+        datasets: [
+            {
+                data: [300, 50], // Example data: 300 acknowledged, 50 not-acknowledged
+                backgroundColor: ['#80a739', '#295f82'],
+                hoverBackgroundColor: ['hsl(81, 49%, 50%)', 'hsl(204, 52%, 40%)'],
+            }
+        ]
+    };
     //Sample Data
     const sampleData = {
         labels: ['January', 'February', 'March'],
@@ -119,6 +133,9 @@ const ReportsTool: React.FC<ReportsToolProps | null> = (props) => {
         scales: {
             y: {
                 beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
             },
         },
     };
@@ -126,17 +143,27 @@ const ReportsTool: React.FC<ReportsToolProps | null> = (props) => {
     const handleOnSwitchReport = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const words = e.target.value.split(' ');
         const report = words[words.length - 1];
-        let labels: string[] = [];
-        let data: number[] = [];
-        const localBarGraphData = { labels, datasets: [{ label: report.toUpperCase() + " REPORT", data, backgroundColor: barColors, borderColor: barColors, borderWidth: 1 }] }
-        console.log(cnSateTopicTypeCategory);
-        for (let label in cnSateTopicTypeCategory[report]) {
-            localBarGraphData.labels.push(label.toUpperCase());
-            if (cnSateTopicTypeCategory[report]) {
-                localBarGraphData.datasets[0].data.push((cnSateTopicTypeCategory[report] as any)[label] as number);
-            }
+        if (report === 'stakeholders') {
+            setShowBarGraph(false);
+            setShowPieGraph(true);
         }
-        setBarGraphData(localBarGraphData);
+        else {
+            let labels: string[] = [];
+            let data: number[] = [];
+            const localBarGraphData = { labels, datasets: [{ label: report.toUpperCase() + " REPORT", data, backgroundColor: barColors, borderColor: barColors, borderWidth: 1 }] }
+            console.log(cnSateTopicTypeCategory);
+            for (let label in cnSateTopicTypeCategory[report]) {
+                localBarGraphData.labels.push(label.toUpperCase());
+                if (cnSateTopicTypeCategory[report]) {
+                    localBarGraphData.datasets[0].data.push((cnSateTopicTypeCategory[report] as any)[label] as number);
+                }
+            }
+            setBarGraphData(localBarGraphData);
+            setShowBarGraph(true);
+            setShowPieGraph(false);
+        }
+
+
 
     }
 
@@ -156,7 +183,29 @@ const ReportsTool: React.FC<ReportsToolProps | null> = (props) => {
         </select>
 
         <hr></hr>
-        <Bar data={barGraphData} height={80} options={options} />
+        {showBarGraph &&
+            <Bar data={barGraphData} height={80} options={options} />
+        }
+        {showPieGraph &&
+            <div style={{ display: 'flex', alignItems: 'top' }}>
+                <div style={{ flexGrow: 1, height: '400px', width: '400px' }}>
+                    <Pie data={pieData} />
+                </div>
+                <div style={{ width: '200px', marginLeft: '20px' }}>
+                    {/* You can put any text or content here */}
+                    <p>List of individual stakeholders who have not acknowledged the Change Notifications in the table.</p>
+                    <div>
+                        <ul>
+                            <li>Stakeholder 1</li>
+                            <li>Stakeholder 2</li>
+                            <li>Stakeholder 3</li>
+                            <li>Stakeholder 4</li>
+                            <li>Stakeholder 5</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
         <button className='btn btn-primary' onClick={props?.onDismiss}>Dismiss</button>
     </div>)
 }
