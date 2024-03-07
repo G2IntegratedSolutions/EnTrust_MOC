@@ -17,6 +17,8 @@ import { group } from 'console';
 import { act } from 'react-dom/test-utils';
 import { getApproversForOrg, acknowledgeActiveCN } from './dataAccess';
 import SelectionTool from './SelectionTool';
+import ReportsTool from './ReportsTool';
+
 
 const MyChangeNotifications = () => {
 
@@ -29,6 +31,7 @@ const MyChangeNotifications = () => {
     const [wasAcknowledged, setWasAcknowledged] = useState([false, false]);
     const [activeCN, setActiveCN] = useState<ChangeNotification | null>(null);
     const [showSelectionTools, setShowSelectionTools] = useState(false);
+    const [showReportTool, setShowReportTool] = useState(false);
     //When the state is changed, often their will be a new owner (e.g. the selected approver or if edits 
     //are required, a creator.  When a CN is approved, the owner becomes approvers and the stakeholders group names (e.g. ACME_North, ACME_South, etc.)
     const [newOwner, setNewOwner] = useState('');
@@ -240,6 +243,10 @@ const MyChangeNotifications = () => {
         setShowSelectionTools(true);
     }
 
+    const handleClickReportTool = () => {
+        setShowReportTool(true);
+    }
+
     const formatDataForTable = (data: any) => {
         if (data !== undefined) {
             if (data === "*") {
@@ -291,6 +298,7 @@ const MyChangeNotifications = () => {
     return (
         <>
             {showSelectionTools && <SelectionTool onApply={handleApplyExpression} onDismiss={() => setShowSelectionTools(false)} changeNotices={cnsForThisUser}></SelectionTool>}
+            {showReportTool && <ReportsTool onApply={handleApplyExpression} onDismiss={() => setShowSelectionTools(false)} changeNotices={cnsForThisUser}></ReportsTool>}
             {showStateChange ?
                 <StateChange changeNotification={activeCN} toState={requestedToState} approvers={approvers} newOwner={newOwner} setShowStateChange={setShowStateChange} /> :
                 <>
@@ -338,7 +346,7 @@ const MyChangeNotifications = () => {
                                 </>}
                                 {selectedRows.length > -1 && <>
                                     <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>email</i><div>Send Emails</div></div>
-                                    <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-purple`}>bar_chart</i><div>Reports</div></div>
+                                    <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => handleClickReportTool()}><i className={`material-icons ent-icon ent-purple`}>bar_chart</i><div>Reports</div></div>
                                 </>}
                             </>}
 

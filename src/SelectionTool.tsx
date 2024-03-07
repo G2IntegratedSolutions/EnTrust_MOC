@@ -102,6 +102,7 @@ const SelectionTool: React.FC<SelectionToolProps | null> = (props) => {
     }
 
     return (<div className={styles.selectionTool}>
+        <h2>Search Tool</h2>
         <p>With this tool, you can select a subset of the Change Notifications in the Change Notifications table.  The reporting 
             and notification tools will respect the subset of CNs that are in your table. </p>
         <hr></hr>
