@@ -18,11 +18,10 @@ import { act } from 'react-dom/test-utils';
 import { getApproversForOrg, acknowledgeActiveCN } from './dataAccess';
 import SelectionTool from './SelectionTool';
 import ReportsTool from './ReportsTool';
+import { getLastValueInArray } from './common';
 
 
 const MyChangeNotifications = () => {
-
-
     const scrollableContainerRef = useRef(null);
     const navigate = useNavigate();
     const columns = [' ', 'MOC#', 'Creator', 'Owner', 'Approver', 'Short Description', 'Groups', 'State', 'Topic', 'Creation Date', 'Publication Date', 'Date of Implementation', 'Required Date', 'Category', 'Change Type', 'Long Description', 'Impacts', 'Location', 'Notes', 'Attachments'];
@@ -75,9 +74,9 @@ const MyChangeNotifications = () => {
 
     }, []);
 
-    const getLastValueInArray = (arr: any[]) => {
-        return arr[arr.length - 1].value;
-    }
+    // const getLastValueInArray = (arr: any[]) => {
+    //     return arr[arr.length - 1].value;
+    // }
 
     const getCNStateForSelectedRow = () => {
         if (selectedRows.length === 1) {
@@ -297,8 +296,8 @@ const MyChangeNotifications = () => {
 
     return (
         <>
-            {showSelectionTools && <SelectionTool onApply={handleApplyExpression} onDismiss={() => setShowSelectionTools(false)} changeNotices={cnsForThisUser}></SelectionTool>}
-            {showReportTool && <ReportsTool onApply={handleApplyExpression} onDismiss={() => setShowSelectionTools(false)} changeNotices={cnsForThisUser}></ReportsTool>}
+            {showSelectionTools && <SelectionTool onApply={handleApplyExpression} onDismiss={() => setShowSelectionTools(false)} ></SelectionTool>}
+            {showReportTool && <ReportsTool  onDismiss={() => setShowReportTool(false)} changeNotices={cnsForThisUser}></ReportsTool>}
             {showStateChange ?
                 <StateChange changeNotification={activeCN} toState={requestedToState} approvers={approvers} newOwner={newOwner} setShowStateChange={setShowStateChange} /> :
                 <>

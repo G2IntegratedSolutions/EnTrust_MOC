@@ -3,9 +3,9 @@
     border: 2px solid #000;
     border-radius: 5px;
     background-color: var(--ent-light-gray);
-    width: 50vw;
-    left:25vw;
-    top:10vh;
+    width: 70vw;
+    left:15vw;
+    top:6vh;
     z-index: 1000;
     box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.1);
     transition: all 0.1s;

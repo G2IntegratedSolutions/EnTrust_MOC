@@ -5,9 +5,7 @@ import React, { useState, useRef } from 'react';
 import { changeStates, changeTopics, changeTypes, changeCategories } from './Interfaces';
 
 
-
 interface SelectionToolProps {
-    changeNotices: ChangeNotification[];
     onDismiss: () => void;
     onApply: (expressions: expression[]) => void;
 }
