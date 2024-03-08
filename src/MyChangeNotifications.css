@@ -16,8 +16,13 @@
     height: 50vh;
     margin: 0;
 }
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
 .tableContainer {
     overflow-x: auto;
+    overflow-y: auto;
     max-height: 300px;
     overflow-y: scroll;
 }
@@ -25,6 +30,13 @@ tbody {
  
     overflow-y: scroll;
 }
+thead th {
+    position: sticky;
+    top: 0;
+    background-color: #fff; /* Match your table's background */
+    z-index: 1; /* Ensures the header is above other content */
+}
+
 .column {
     min-width: 200px;
 }
@@ -33,7 +45,6 @@ tbody {
     color:white;
     
 }
-
 
 .table {
     --bs-table-bg: transparent;

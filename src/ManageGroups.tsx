@@ -162,9 +162,6 @@ const ManageGroups: React.FC<ManageGroupsProps> = ({ groupsInOrg, setGroupsInOrg
                     </div>
                     <button className='btn btn-primary' disabled={false} type="button" onClick={handleExistingGroupUpdateSubmit} >Update Group</button>
                 </form>
-
-
-
             </div>
         </div>
     );
