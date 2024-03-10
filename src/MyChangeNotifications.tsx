@@ -17,10 +17,11 @@ import { group } from 'console';
 import { act } from 'react-dom/test-utils';
 import { getApproversForOrg, acknowledgeActiveCN } from './dataAccess';
 import SelectionTool from './SelectionTool';
+import ReportsTool from './ReportsTool';
+import { getLastValueInArray } from './common';
+
 
 const MyChangeNotifications = () => {
-
-
     const scrollableContainerRef = useRef(null);
     const navigate = useNavigate();
     const columns = [' ', 'MOC#', 'Creator', 'Owner', 'Approver', 'Short Description', 'Groups', 'State', 'Topic', 'Creation Date', 'Publication Date', 'Date of Implementation', 'Required Date', 'Category', 'Change Type', 'Long Description', 'Impacts', 'Location', 'Notes', 'Attachments'];
@@ -29,6 +30,7 @@ const MyChangeNotifications = () => {
     const [wasAcknowledged, setWasAcknowledged] = useState([false, false]);
     const [activeCN, setActiveCN] = useState<ChangeNotification | null>(null);
     const [showSelectionTools, setShowSelectionTools] = useState(false);
+    const [showReportTool, setShowReportTool] = useState(false);
     //When the state is changed, often their will be a new owner (e.g. the selected approver or if edits 
     //are required, a creator.  When a CN is approved, the owner becomes approvers and the stakeholders group names (e.g. ACME_North, ACME_South, etc.)
     const [newOwner, setNewOwner] = useState('');
@@ -72,9 +74,9 @@ const MyChangeNotifications = () => {
 
     }, []);
 
-    const getLastValueInArray = (arr: any[]) => {
-        return arr[arr.length - 1].value;
-    }
+    // const getLastValueInArray = (arr: any[]) => {
+    //     return arr[arr.length - 1].value;
+    // }
 
     const getCNStateForSelectedRow = () => {
         if (selectedRows.length === 1) {
@@ -240,6 +242,10 @@ const MyChangeNotifications = () => {
         setShowSelectionTools(true);
     }
 
+    const handleClickReportTool = () => {
+        setShowReportTool(true);
+    }
+
     const formatDataForTable = (data: any) => {
         if (data !== undefined) {
             if (data === "*") {
@@ -290,7 +296,8 @@ const MyChangeNotifications = () => {
 
     return (
         <>
-            {showSelectionTools && <SelectionTool onApply={handleApplyExpression} onDismiss={() => setShowSelectionTools(false)} changeNotices={cnsForThisUser}></SelectionTool>}
+            {showSelectionTools && <SelectionTool onApply={handleApplyExpression} onDismiss={() => setShowSelectionTools(false)} ></SelectionTool>}
+            {showReportTool && <ReportsTool  onDismiss={() => setShowReportTool(false)} changeNotices={cnsForThisUser}></ReportsTool>}
             {showStateChange ?
                 <StateChange changeNotification={activeCN} toState={requestedToState} approvers={approvers} newOwner={newOwner} setShowStateChange={setShowStateChange} /> :
                 <>
@@ -338,7 +345,7 @@ const MyChangeNotifications = () => {
                                 </>}
                                 {selectedRows.length > -1 && <>
                                     <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>email</i><div>Send Emails</div></div>
-                                    <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-purple`}>bar_chart</i><div>Reports</div></div>
+                                    <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => handleClickReportTool()}><i className={`material-icons ent-icon ent-purple`}>bar_chart</i><div>Reports</div></div>
                                 </>}
                             </>}
 
@@ -366,7 +373,7 @@ const MyChangeNotifications = () => {
                                                     ))}
                                                 </tr>
                                             </thead>
-                                            <tbody>
+                                            <tbody >
                                                 {cnsForThisUser.map((cn: ChangeNotification, rowIndex: number) => {
                                                     const rowDataObject = {
                                                         X: wasAcknowledged[rowIndex] ? '*' : '',

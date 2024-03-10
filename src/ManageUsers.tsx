@@ -67,7 +67,6 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
             const db = getFirestore();
             const usersCollectionRef = collection(db, 'Users');
             await setDoc(doc(usersCollectionRef, newUserCreds?.user.uid), newUser);
-            debugger;
             refreshUsersInOrg();
             setExistingUserPhone('');
             toast.success('User successfully added!');

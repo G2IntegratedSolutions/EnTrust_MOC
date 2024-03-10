@@ -123,7 +123,7 @@ const ManageGroups: React.FC<ManageGroupsProps> = ({ groupsInOrg, setGroupsInOrg
             <hr></hr>
             <h4>Update/Remove Existing Group</h4>
             <span onClick={deleteExistingGroup} className={styles.deleteSelected}>Remove Group</span>
-            <label>Group Name:</label>
+            <label className='form-label'>Group Name:</label>
             <select className='form-control' onChange={handlExistingGroupChange}>
                 {groupsInOrg.map((groupInOrg, index) => (
                     <option key={index} value={groupInOrg.name}>{groupInOrg.name}</option>
@@ -131,10 +131,10 @@ const ManageGroups: React.FC<ManageGroupsProps> = ({ groupsInOrg, setGroupsInOrg
             </select>
             <div>
                 <br></br>
-                <div>Update this Group</div>
+                <h6>Update this Group</h6>
                 <form  >
                     <div>
-                        <label className='form-label'>Group Name:</label>
+                        <label className='form-label' style={{marginRight:'5px'}}>Group Name:</label>
                         <input className={`${styles.narrow} form-control`} type="text" name="groupName"
                             placeholder=
                             {groupsInOrg && existingGroupIndex >= 0 && existingGroupIndex < groupsInOrg.length ? groupsInOrg[existingGroupIndex].name : ''}
@@ -147,7 +147,7 @@ const ManageGroups: React.FC<ManageGroupsProps> = ({ groupsInOrg, setGroupsInOrg
                         </input>
                     </div>
                     <div>
-                        <label className='form-label'>Group Description:</label>
+                        <label className='form-label' style={{marginRight:'5px'}}>Group Description:</label>
                         <input className={`${styles.narrow} form-control`} type="text" name="groupDescription"
                             placeholder=
                             {groupsInOrg && existingGroupIndex >= 0 && existingGroupIndex < groupsInOrg.length ? groupsInOrg[existingGroupIndex].description : ''}
@@ -162,9 +162,6 @@ const ManageGroups: React.FC<ManageGroupsProps> = ({ groupsInOrg, setGroupsInOrg
                     </div>
                     <button className='btn btn-primary' disabled={false} type="button" onClick={handleExistingGroupUpdateSubmit} >Update Group</button>
                 </form>
-
-
-
             </div>
         </div>
     );
