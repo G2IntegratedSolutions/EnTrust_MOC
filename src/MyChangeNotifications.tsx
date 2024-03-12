@@ -18,22 +18,20 @@ import { act } from 'react-dom/test-utils';
 import { getApproversForOrg, acknowledgeActiveCN } from './dataAccess';
 import SelectionTool from './SelectionTool';
 import ReportsTool from './ReportsTool';
-import { getLastValueInArray } from './common';
+import { getLastValueInArray, getLastArrayInArray } from './dataAccess';
 
 
 const MyChangeNotifications = () => {
     const scrollableContainerRef = useRef(null);
     const navigate = useNavigate();
-    const columns = [' ', 'MOC#', 'Creator', 'Owner', 'Approver', 'Short Description', 'Groups', 'State', 'Topic', 'Creation Date', 'Publication Date', 'Date of Implementation', 'Required Date', 'Category', 'Change Type', 'Long Description', 'Impacts', 'Location', 'Notes', 'Attachments'];
-    const columnWidths = [25, 100, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200]; // Adjust these values as needed
+    const columns = [' ', 'MOC#', 'Creator',  'Approver', 'Short Description', 'Groups', 'State', 'Topic', 'Creation Date', 'Publication Date', 'Date of Implementation', 'Required Date', 'Category', 'Change Type', 'Long Description', 'Impacts', 'Location', 'Notes', 'Attachments'];
+    const columnWidths = [25, 100, 200, 200, 200,  200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200]; // Adjust these values as needed
     const [selectedRows, setSelectedRows] = useState<number[]>([]);
     const [wasAcknowledged, setWasAcknowledged] = useState([false, false]);
     const [activeCN, setActiveCN] = useState<ChangeNotification | null>(null);
     const [showSelectionTools, setShowSelectionTools] = useState(false);
     const [showReportTool, setShowReportTool] = useState(false);
-    //When the state is changed, often their will be a new owner (e.g. the selected approver or if edits 
-    //are required, a creator.  When a CN is approved, the owner becomes approvers and the stakeholders group names (e.g. ACME_North, ACME_South, etc.)
-    const [newOwner, setNewOwner] = useState('');
+
     //The icons in order are:
     // ALL USERS:  (0) Back (1) Search
     // STAKHOLDERS: (2) Acknowledge (3) Object to CN
@@ -74,10 +72,6 @@ const MyChangeNotifications = () => {
 
     }, []);
 
-    // const getLastValueInArray = (arr: any[]) => {
-    //     return arr[arr.length - 1].value;
-    // }
-
     const getCNStateForSelectedRow = () => {
         if (selectedRows.length === 1) {
             return getLastValueInArray(cnsForThisUser[selectedRows[0]].cnState);
@@ -87,8 +81,10 @@ const MyChangeNotifications = () => {
     //This useEffect creates the changeNotifications array.  It runs when the component
     //loads or when the CN Details form in newCN mode creates a new CN. 
     useEffect(() => {
+        setSelectedRows([]);
+        setShowDetailForm(false);
+        console.log('useEffect: requestedMocID: ' + requestedMocID + ' showStateChange: ' + showStateChange)
         let org = authContext.user?.organization;
-        // ebugger;
         if (currentUserEmail && org) {
             let indexOfNewlyCreatedCNtoSelect = -1;
             const db = getFirestore();
@@ -98,16 +94,13 @@ const MyChangeNotifications = () => {
                 const selectedUserInOrg = querySnapshot.docs.map(doc => doc.data());
                 let docs: any[] = [];
                 if (selectedUserInOrg.length > 0) {
-                    // ebugger;
                     const groupsForUser = selectedUserInOrg[0].groups;
                     let q: Query;
                     if (authContext.user?.isStakeholder == false) {
                         q = query(collection(db, "changeNotifications"),
-                            where("organization", "==", org),
-                            where("latestOwner", "==", authContext.user?.email)
+                            where("organization", "==", org)
                         );
                         const querySnapshot = await getDocs(q);
-                        // ebugger;
                         docs = querySnapshot.docs;
                     }
                     else {
@@ -135,11 +128,10 @@ const MyChangeNotifications = () => {
                         // ebugger;
                         let docData = docs[i].data();
                         let latest: any = {};
-                        latest["X"] = 'B'
                         latest["mocNumber"] = docData["mocNumber"];
                         latest["creator"] = docData["creator"];
                         latest["organization"] = org;
-                        const fields = ["owner", "approver", "shortReasonForChange", "groups", "cnState", "changeTopic",
+                        const fields = [ "approver", "shortReasonForChange", "groups", "cnState", "changeTopic",
                             "dateOfCreation", "dateOfPublication", "timeOfImplementation", "requiredDateOfCompletion",
                             "category", "changeType", "descriptionOfChange", "impacts", "location", "notes", "attachments"];
                         for (const field of fields) {
@@ -150,10 +142,32 @@ const MyChangeNotifications = () => {
                                 latest[field as keyof typeof latest] = array; // lastElement;//.value as never;
                             }
                         }
-                        // Cast the data to a ChangeNotification and add it to the array
-                        changeNotifications.push(latest as ChangeNotification);
-                        if (latest.mocNumber === requestedMocID) {
-                            indexOfNewlyCreatedCNtoSelect = changeNotifications.length - 1;
+                        // before pushing to the change notifications array, we need to test if the user has the 
+                        // correct role for the given state
+                        let addToChangeNotifications = true;
+                        if (latest.cnState !== undefined) {
+                            const lastState = getLastValueInArray(latest.cnState);
+                            if (lastState === CNState.PENDING_APPROVAL) {
+                                if (authContext.user?.isCreator === true) {
+                                    addToChangeNotifications = false;
+                                }
+                            }
+                            if (lastState === CNState.UNDER_REVIEW) {
+                                if (authContext.user?.isApprover === false) {
+                                    addToChangeNotifications = false;
+                                }
+                            }
+                            if (lastState === CNState.APPROVED) {
+                                if (authContext.user?.isCreator === true) {
+                                    addToChangeNotifications = false;
+                                }
+                            }
+                        }
+                        if (addToChangeNotifications) {
+                            changeNotifications.push(latest as ChangeNotification);
+                            if (latest.mocNumber === requestedMocID) {
+                                indexOfNewlyCreatedCNtoSelect = changeNotifications.length - 1;
+                            }
                         }
                     }
                     setOriginalCnsForThisUser([...changeNotifications]);                   
@@ -205,9 +219,6 @@ const MyChangeNotifications = () => {
             alert("You must set an approver before seeking approval");
             return;
         }
-        else {
-            setNewOwner(approver);
-        }
         setShowStateChange(true);
     }
 
@@ -237,7 +248,18 @@ const MyChangeNotifications = () => {
 
     const onRequestEdit = async () => {
     }
-
+    const onCompleteCN= async () => {
+        setRequestedToState(CNState.COMPLETED);
+        setShowStateChange(true);
+    }
+    const onArchiveCN= async () => {
+        setRequestedToState(CNState.ARCHIVED);
+        setShowStateChange(true);
+    }
+    const onActivateCN= async () => {
+        setRequestedToState(CNState.ACTIVATED);
+        setShowStateChange(true);
+    } 
     const handleClickSelectTool = () => {
         setShowSelectionTools(true);
     }
@@ -299,7 +321,7 @@ const MyChangeNotifications = () => {
             {showSelectionTools && <SelectionTool onApply={handleApplyExpression} onDismiss={() => setShowSelectionTools(false)} ></SelectionTool>}
             {showReportTool && <ReportsTool  onDismiss={() => setShowReportTool(false)} changeNotices={cnsForThisUser}></ReportsTool>}
             {showStateChange ?
-                <StateChange changeNotification={activeCN} toState={requestedToState} approvers={approvers} newOwner={newOwner} setShowStateChange={setShowStateChange} /> :
+                <StateChange changeNotification={activeCN} toState={requestedToState} approvers={approvers}  setShowStateChange={setShowStateChange} /> :
                 <>
                     {(cnsForThisUser.length > 0 || authContext.user?.isCreator == true) && (showTable) ? (
                         <div className="scrollableContainer" ref={scrollableContainerRef} >
@@ -337,10 +359,10 @@ const MyChangeNotifications = () => {
                                     {getLastValueInArray(activeCN?.cnState ?? []) === CNState.ACTIVATED && <>
                                         <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-orange`}>calendar_month</i><div>Reschedule CN</div></div>
                                         <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-green`}>pause</i><div>Pause CN</div></div>
-                                        <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-purple`}>directions_run</i><div>Activate</div></div>
-                                        <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-red`}>done_all</i><div>Complete CN</div></div>
+                                        <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => onActivateCN()}><i className={`material-icons ent-icon ent-purple`}>directions_run</i><div>Activate</div></div>
+                                        <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => onCompleteCN()}><i className={`material-icons ent-icon ent-red`}>done_all</i><div>Complete CN</div></div>
                                         <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-blue`}>cancel</i><div>Cancel CN</div></div>
-                                        <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => navigate('/')}><i className={`material-icons ent-icon ent-orange`}>archive</i><div>Archive CN</div></div>
+                                        <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => onArchiveCN()}><i className={`material-icons ent-icon ent-orange`}>archive</i><div>Archive CN</div></div>
                                     </>}
                                 </>}
                                 {selectedRows.length > -1 && <>
@@ -378,11 +400,10 @@ const MyChangeNotifications = () => {
                                                     const rowDataObject = {
                                                         X: wasAcknowledged[rowIndex] ? '*' : '',
                                                         mocNumber: cn.mocNumber,
-                                                        creator: cn.creator,
-                                                        owner: getLastValueInArray(cn.owner),
+                                                        creator: getLastValueInArray(cn.creator),
                                                         approver: getLastValueInArray(cn.approver),
                                                         shortReasonForChange: getLastValueInArray(cn.shortReasonForChange),
-                                                        groups: getLastValueInArray(cn.groups),
+                                                        groups: getLastArrayInArray(cn.groups),
                                                         cnState: getLastValueInArray(cn.cnState),
                                                         changeTopic: getLastValueInArray(cn.changeTopic),
                                                         dateOfCreation: getLastValueInArray(cn.dateOfCreation),
@@ -395,19 +416,13 @@ const MyChangeNotifications = () => {
                                                         impacts: getLastValueInArray(cn.impacts),
                                                         location: getLastValueInArray(cn.location),
                                                         notes: getLastValueInArray(cn.notes),
-                                                        attachments: getLastValueInArray(cn.attachments)
+                                                        attachments: getLastArrayInArray(cn.attachments)
                                                     };
                                                     return (
-                                                        <tr key={rowIndex} onClick={() => handleRowClick(rowIndex)} style={selectedRows.includes(rowIndex) ? { color: 'white', backgroundColor: 'var(--ent-blue)' } : {}}>
+                                                        <tr className='tableRow' key={rowIndex} onClick={() => handleRowClick(rowIndex)} style={selectedRows.includes(rowIndex) ? { color: 'white', backgroundColor: 'var(--ent-blue)' } : {}}>
                                                             {Object.values(rowDataObject).map((data, index) => (
                                                                 <td key={index} className="column" style={{ minWidth: columnWidths[index] }}>
                                                                     {formatDataForTable(data)}
-                                                                    {/* {data !== undefined
-                                                                        ? data.toString().length > 50
-                                                                            ? data.toString().slice(0, 50) + '...'
-                                                                            : data.toString()
-                                                                        : null
-                                                                    }  */}
                                                                 </td>
                                                             ))}
                                                         </tr>

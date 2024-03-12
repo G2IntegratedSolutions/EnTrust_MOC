@@ -43,7 +43,7 @@ thead th {
 .th.columnHeader {
     background-color: var(--ent-green) !important;
     color:white;
-    
+    line-height: 1rem;
 }
 
 .table {

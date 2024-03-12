@@ -9,6 +9,3 @@ export function generateRandomString(length: number) {
   return result;
 }
 
-export const getLastValueInArray = (arr: any[]) => {
-  return arr[arr.length - 1].value;
-}
