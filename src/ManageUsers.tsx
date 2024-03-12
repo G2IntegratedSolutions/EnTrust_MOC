@@ -1,7 +1,7 @@
 import React, { useState, ChangeEvent, FormEvent, ReactNode, useEffect, useRef } from 'react';
 import InputMask, { Props as InputProps } from 'react-input-mask';
 import styles from './Admin.module.css';
-import { Group, User } from './Interfaces'
+import { Group, User, Role } from './Interfaces'
 import { getFirestore, query, where, collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
 import { toast } from 'react-toastify';
@@ -17,7 +17,7 @@ interface ManageUsersProps {
 }
 
 const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, refreshUsersInOrg }) => {
-    const [user, setUser] = useState<User>({ id: '', email: '', phone: '', organization: '', groups: [], firstName: '', lastName: '', isAdmin: false, isApprover: false, isCreator: false, isStakeholder: false });
+    const [user, setUser] = useState<User>({ id: '', email: '', phone: '', organization: '', groups: [], firstName: '', lastName: '', isAdmin: false, isApprover: false, isCreator: false, isStakeholder: false, isReviewer: false });
     const [existingUserIndex, setExistingUserIndex] = useState<number>(0);
     const [existingUserPhone, setExistingUserPhone] = useState<string>('');
     const [existingUserEmail, setExistingUserEmail] = useState<string>('');
@@ -25,6 +25,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
     const [isPhoneValid, setIsPhoneValid] = useState(false);
     const [deleteLinkVisible, setDeleteLinkVisible] = useState(false);
     const authContext = useAuth();
+    const roles = [{ role: Role.ADMIN, field: "isAdmin" }, { role: Role.CREATOR, field: "isCreator" }, { role: Role.APPROVER, field: "isApprover" }, { role: Role.REVIEWER, field: "isReviewer" }, { role: Role.STAKEHOLDER, field: "isStakeholder" }];
 
     useEffect(() => {
         if (usersInOrg.length > 0) {
@@ -45,7 +46,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
         e.preventDefault();
         try {
             // Create a new user in Firebase Auth based on the email address provided and a default password
-            const { email, phone, organization, groups, isAdmin, isApprover, isCreator, isStakeholder, firstName, lastName } = user;
+            const { email, phone, organization, groups, isAdmin, isApprover, isCreator, isStakeholder, firstName, lastName, isReviewer } = user;
             const password = 'defaultPassword';
             const newUserCreds = await createUserWithEmailAndPassword(auth, email.toLowerCase(), password);
             console.log('User created successfully');
@@ -54,13 +55,14 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                 id: generateRandomString(8),
                 firstName,
                 lastName,
-                email:email.toLowerCase(),
+                email: email.toLowerCase(),
                 phone,
                 userName: email.toLowerCase(),
                 isAdmin: isAdmin,
                 isApprover: isApprover,
                 isCreator: isCreator,
                 isStakeholder: isStakeholder,
+                isReviewer: isReviewer,
                 organization: authContext.user?.organization,
                 groups: ['NONE'],
             };
@@ -153,22 +155,18 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                     <InputMask mask="(999)999-9999" className='form-control' type="phone" name="phone" value={user.phone} onChange={handleNewUserChange}>
                     </InputMask>
                 </div>
-                <div className="form-group" >
-                    <label className='form-label' htmlFor="isAdmin">Make Administrator:</label>
-                    <input type="checkbox" name="isAdmin" checked={user.isAdmin} onChange={handleNewUserChange} />
-                </div>
-                <div className="form-group" >
-                    <label className='form-label' htmlFor="isApprover">Make Approver:</label>
-                    <input type="checkbox" name="isApprover" checked={user.isApprover} onChange={handleNewUserChange} />
-                </div>
-                <div className="form-group" >
-                    <label className='form-label' htmlFor="isCreator">Make Creator:</label>
-                    <input type="checkbox" name="isCreator" checked={user.isCreator} onChange={handleNewUserChange} />
-                </div>
-                <div className="form-group" >
-                    <label className='form-label' htmlFor="isStakeholder">Make Stakeholder:</label>
-                    <input type="checkbox" name="isStakeholder" checked={user.isStakeholder} onChange={handleNewUserChange} />
-                </div>
+                {
+                    roles.map((prop, index) => {
+                        return (
+                            <div key={index} className="form-group" >
+                                <label htmlFor={prop.field} className='form-label'>Make {prop.role}?</label>
+                                <input type="checkbox" name={prop.field}  onChange={handleNewUserChange}
+                                    checked={(user as any)[prop.field] ?? false}
+                                />
+                            </div>
+                        )
+                    })
+                }
                 <button className='btn btn-primary' onClick={handleNewUserSubmit}>Create User</button>
             </form>
             <hr></hr>
@@ -211,7 +209,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                     <div ><label>Last Name</label><input className='form-control' type="text" name="lastName"
                         value={usersInOrg?.[existingUserIndex]?.lastName || ''}
                     /></div>
-                    <div ><label>Make Administrator?</label><input type="checkbox" name="isAdmin"
+                    <div ><label className='form-label'>Make Administrator?</label><input type="checkbox" name="isAdmin"
                         onChange={(e) => {
                             if (usersInOrg[existingUserIndex].email == authContext.user?.email) {
                                 toast.error('You cannot change your own admin status');
@@ -221,15 +219,18 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                         }}
                         checked={existingUserIsAdmin}
                     /></div>
-                    <div ><label>Make Creator?</label><input type="checkbox" name="isCreator"
-                        checked={usersInOrg?.[existingUserIndex]?.isCreator || false}
-                    /></div>
-                    <div ><label>Make Approver?</label><input type="checkbox" name="isApprover"
-                        checked={usersInOrg?.[existingUserIndex]?.isApprover || false}
-                    /></div>
-                    <div ><label>Make Stakeholder?</label><input type="checkbox" name="isStakeholder"
-                        checked={usersInOrg?.[existingUserIndex]?.isStakeholder || false}
-                    /></div>
+                    {
+                        roles.filter((prop) => prop.role !== Role.ADMIN).map((prop, index) => {
+                            return (
+                                <div key={index} className="form-group" >
+                                    <label className='form-label'>Make {prop.role}?</label>
+                                    <input type="checkbox" name={prop.role}
+                                        checked={(usersInOrg?.[existingUserIndex] as any)?.[prop.field] ?? false}
+                                    />
+                                </div>
+                            )
+                        })
+                    }
                     <button className='btn btn-primary' disabled={!isPhoneValid} type="submit" >Update User</button>
                 </form>
             </div>

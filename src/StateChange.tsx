@@ -4,21 +4,18 @@ import firebase from 'firebase/app';
 import 'firebase/firestore';
 import { toast } from 'react-toastify';
 import { getFirestore, query, where, collection, addDoc, Query, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
-import { OnSeekApprovalCN, OnApproveCN,OnUnderReviewCN } from './TransitionEvents';
+import { OnSeekApprovalCN, OnApproveCN, OnUnderReviewCN } from './TransitionEvents';
 import { useAuth } from './AuthContext';
-
+import { getLastValueInArray } from './dataAccess';
 
 interface StateChangeProps {
     changeNotification: ChangeNotification | null;
     toState: CNState;
-    newOwner: string;
     setShowStateChange: React.Dispatch<React.SetStateAction<boolean>>;
     approvers: string[];
 }
-const getLastValueInArray = (arr: any[]) => {
-    return arr[arr.length - 1].value;
-}
-const StateChange: React.FC<StateChangeProps> = ({ changeNotification, toState, approvers, newOwner, setShowStateChange }) => {
+
+const StateChange: React.FC<StateChangeProps> = ({ changeNotification, toState, approvers, setShowStateChange }) => {
     const authContext = useAuth();
     const [emailNotes, setEmailNotes] = React.useState('');
     const [checkedValues, setCheckedValues] = useState<string[]>([]);
@@ -53,7 +50,7 @@ const StateChange: React.FC<StateChangeProps> = ({ changeNotification, toState, 
                     toast.success('Change Notification successfully updated!');
                     switch (toState) {
                         case CNState.PENDING_APPROVAL:
-                            OnSeekApprovalCN(changeNotification, authContext.user, emailNotes);
+                            OnSeekApprovalCN(changeNotification as ChangeNotification, authContext.user, emailNotes);
                             // const lastApprover = getLastValueInArray(changeNotification?.approver ?? []);
                             // newDoc.latestOwner = lastApprover
                             break;
@@ -64,6 +61,27 @@ const StateChange: React.FC<StateChangeProps> = ({ changeNotification, toState, 
                             break;
                         case CNState.UNDER_REVIEW:
                             OnUnderReviewCN(changeNotification, authContext.user, approvers, emailNotes);
+                            break;
+                        case CNState.UPDATES_REQUIRED:
+                            //OnUnderReviewCN(changeNotification, authContext.user, approvers, emailNotes);
+                            break;
+                        case CNState.APPROVED:
+                            OnUnderReviewCN(changeNotification, authContext.user, approvers, emailNotes);
+                            break;
+                        case CNState.ACTIVATED:
+                            //OnUnderReviewCN(changeNotification, authContext.user, approvers, emailNotes);
+                            break;
+                        case CNState.RESCHEDULED:
+                            //OnUnderReviewCN(changeNotification, authContext.user, approvers, emailNotes);
+                            break;
+                        case CNState.COMPLETED:
+                            //OnUnderReviewCN(changeNotification, authContext.user, approvers, emailNotes);
+                            break;
+                        case CNState.CANCELLED:
+                            //OnUnderReviewCN(changeNotification, authContext.user, approvers, emailNotes);
+                            break;
+                        case CNState.ARCHIVED:
+                            //OnUnderReviewCN(changeNotification, authContext.user, approvers, emailNotes);
                             break;
                     }
                 }).catch((error) => {
@@ -86,7 +104,7 @@ const StateChange: React.FC<StateChangeProps> = ({ changeNotification, toState, 
                     <hr></hr>
                     <div>To Transition to this state, you must select one or more approvers to review the CN. The approvers
                         you select will be notified by email.  As the
-                        primary approver for this Change Notificiation, it is your responsibility to determine based on the reviewers 
+                        primary approver for this Change Notificiation, it is your responsibility to determine based on the reviewers
                         feedback whether to approve or reject the CN.
                     </div>
                     {approvers.map((approver, index) => {

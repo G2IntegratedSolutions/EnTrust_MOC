@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { changeStates, changeTopics, changeTypes, changeCategories } from './Interfaces';
 import { Bar, Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
-import { getLastValueInArray } from './common';
+import { getLastValueInArray } from './dataAccess';
 import 'chart.js/auto'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);

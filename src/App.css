@@ -61,7 +61,9 @@ img.header-logo {
 .associateUserAndGroups, .createChangeNotice,   .createNewGroup, .createNewUser, .mocPage {
   margin: 10px;
 }
-
+.tableRow {
+  font-size: 12px;
+}
 h2{
   color: var(--ent-blue) !important;
 }

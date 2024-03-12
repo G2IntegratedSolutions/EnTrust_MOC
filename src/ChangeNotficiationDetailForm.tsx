@@ -24,7 +24,6 @@ interface ChangeNotificationDetailFormProps {
     approvers: string[];
 }
 
-
 const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps | null> = (props) => {
     // ebugger
     const [cn, setCN] = useState<ChangeNotification | null>(props?.changeNotice ?? null);
@@ -55,7 +54,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
     // Change Notification Form State
     const [mocNumber, setMocNumber] = useState('');
     const [creator, setCreator] = useState('');
-    const [owner, setOwner] = useState('');
+    // const [owner, setOwner] = useState('');
     const [approver, setApprover] = useState('');
     const [shortReasonForChange, setShortReasonForChange] = useState('');
     //Note that the array "groups" here is NOT an array of group names, but rather an array of different times when group might have been changed for a sepecific CN. 
@@ -108,13 +107,11 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
     useEffect(() => {
         let theMocNumber: string = '';
         let theCreator: string = '';
-        let theOwner: string = '';
         let theApprover: string = '';
         let groupsForThisCN = "";
         if (props?.isNewCN) {
             theMocNumber = generateRandomString(10);
-            theCreator = authContext.user?.userName ? authContext.user?.userName : '';
-            theOwner = theCreator;
+            theCreator = authContext.user?.email ?? '';
             theApprover = 'UNSET';
             setDateOfCreation(new Date().toISOString().split('T')[0]);
             setDateOfPublication(new Date().toISOString().split('T')[0]);
@@ -134,10 +131,8 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
         }
         else {
             theMocNumber = cn?.mocNumber ? cn?.mocNumber : '';
-            theCreator = cn?.creator ? (authContext.user?.userName || '') : '';
-            theOwner = getLastInArray(cn, 'owner');
+            theCreator = getLastInArray(cn, 'creator');
             theApprover = getLastInArray(cn, 'approver');
-
             setShortReasonForChange(getLastInArray(cn, 'shortReasonForChange'));
             setCNState(getLastInArray(cn, 'cnState'));
             setChangeTopic(getLastInArray(cn, 'changeTopic'));
@@ -160,11 +155,8 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
         }
         setMocNumber(theMocNumber);
         setCreator(theCreator);
-        setOwner(theOwner)
         setApprover(theApprover);
         getGroupsForOrganization(groupsForThisCN)
-
-
     }, [cn?.mocNumber, props?.isNewCN]);
 
     interface ChangeNotification {
@@ -288,9 +280,9 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
         });
     };
 
-    const formatCnField = (newValue: string): { timeStamp: number, value: string }[] => {
+    const formatCnField = (version: number, newValue: string): { version: number, value: string }[] => {
         return [{
-            timeStamp: Date.now(),
+            version,
             value: newValue,
         }];
     };
@@ -303,29 +295,32 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
     }
 
     const handleCreateCN = async (e: FormEvent) => {
+        // When created, the version is 1.  When we move to PENDING APPROVAL from UPDATES REQUIRED, the version is incremented by 1.
+        const version = 1;
         e.preventDefault();
         try {
             const cn: ChangeNotification = {
                 mocNumber,
-                creator,
-                owner: formatCnField(owner),
-                approver: formatCnField(approver),
-                shortReasonForChange: formatCnField(shortReasonForChange),
-                groups: formatCnField(getPipeDelimitedGroups()),
-                cnState: formatCnField(cnState),
-                changeTopic: formatCnField(selectedChangeTopic),
-                dateOfCreation: formatCnField(dateOfCreation),
-                dateOfPublication: formatCnField(dateOfPublication),
-                timeOfImplementation: formatCnField(timeOfImplementation),
-                requiredDateOfCompletion: formatCnField(requiredDateOfCompletion),
-                category: formatCnField(selectedChangeCategory),
-                changeType: formatCnField(selectedChangeType),
-                descriptionOfChange: formatCnField(descriptionOfChange),
-                impacts: formatCnField(impacts),
-                location: formatCnField(location),
-                notes: formatCnField(notes),
-                attachments: formatCnField(attachments),
+                creator: formatCnField(version,creator),
+                approver: formatCnField(version,approver),
+                shortReasonForChange: formatCnField(version,shortReasonForChange),
+                groups: formatCnField(version,getPipeDelimitedGroups()),
+                cnState: formatCnField(version,cnState),
+                changeTopic: formatCnField(version,selectedChangeTopic),
+                dateOfCreation: formatCnField(version,dateOfCreation),
+                dateOfPublication: formatCnField(version, dateOfPublication),
+                timeOfImplementation: formatCnField(version, timeOfImplementation),
+                requiredDateOfCompletion: formatCnField(version,requiredDateOfCompletion),
+                category: formatCnField(version,selectedChangeCategory),
+                changeType: formatCnField(version,selectedChangeType),
+                descriptionOfChange: formatCnField(version,descriptionOfChange),
+                impacts: formatCnField(version, impacts),
+                location: formatCnField(version,location),
+                notes: formatCnField(version,notes),
+                attachments: formatCnField(version,attachments),
                 organization: authContext?.user?.organization,
+                version: formatCnField(version,new Date().toUTCString() ),
+                reviewerVotes: [],
                 onCreatedNotes: [],
                 onUnderReviewNotes: [],
                 onActivatedNotes: [],
@@ -336,7 +331,6 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                 onCancelledNotes: [],
                 acknowledgements: {},
                 objections: [],
-                latestOwner: owner,
                 latestApprover: approver,
                 latestState: cnState,
                 latestGroups: getPipeDelimitedGroups().split("|"),
@@ -397,7 +391,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                     />
                 </div>
                 {/* Owner */}
-                <div className="mb-3" style={{ display: props?.isNewCN && hideFieldsForNew ? 'none' : 'unset' }}>
+                {/* <div className="mb-3" style={{ display: props?.isNewCN && hideFieldsForNew ? 'none' : 'unset' }}>
                     <label htmlFor="owner" className="form-label">Owner</label>
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Owner')}>info</i>
                     <input
@@ -406,7 +400,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                         value={owner}
                         disabled
                     />
-                </div>
+                </div> */}
                 {/* Approver */}
                 <div className="mb-3">
                     <label htmlFor="approver" className="form-label">Select the Approver for this change</label>
