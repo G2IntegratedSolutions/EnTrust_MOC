@@ -79,6 +79,20 @@ export async function acknowledgeActiveCN(activeCN: ChangeNotification, didAckno
         });
     });
 }
+export async function updateExistingCN(cn: ChangeNotification, newCN: Record<string, string>) {
+    debugger;
+    const mocID = cn.mocNumber;
+    const cnCollection = collection(db, 'changeNotifications');
+    const qCN = query(cnCollection, where("organization", "==", cn.organization), where("mocNumber", "==", mocID));
+    const querySnapshot = await getDocs(qCN);
+    querySnapshot.forEach((doc) => {
+        updateDoc(doc.ref, newCN).then(() => {
+            console.log('CN updated');
+        }).catch((error: any) => {
+            console.log('Error updating CN:', error);
+        });
+    });
+}
 
 export async function handleAssignToGroup(selectedUserEmail: string, currentOrg: string, selectedGroup: string,
     groupsInOrg: any[], setGroupsForSelectedUser: any) {

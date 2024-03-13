@@ -31,7 +31,7 @@ const MyChangeNotifications = () => {
     const [activeCN, setActiveCN] = useState<ChangeNotification | null>(null);
     const [showSelectionTools, setShowSelectionTools] = useState(false);
     const [showReportTool, setShowReportTool] = useState(false);
-
+    const [updateExisting, setUpdateExisting] = useState(false);
     //The icons in order are:
     // ALL USERS:  (0) Back (1) Search
     // STAKHOLDERS: (2) Acknowledge (3) Object to CN
@@ -133,7 +133,7 @@ const MyChangeNotifications = () => {
                         latest["organization"] = org;
                         const fields = [ "approver", "shortReasonForChange", "groups", "cnState", "changeTopic",
                             "dateOfCreation", "dateOfPublication", "timeOfImplementation", "requiredDateOfCompletion",
-                            "category", "changeType", "descriptionOfChange", "impacts", "location", "notes", "attachments"];
+                            "category", "changeType", "descriptionOfChange", "impacts", "location", "notes", "attachments", "version"];
                         for (const field of fields) {
                             const array = docData[field];
 
@@ -208,6 +208,16 @@ const MyChangeNotifications = () => {
     // and by setting showDetailForm to true, we are telling the details form to show.
     const onCreateChangeNotification = () => {
         setIsNewCN(true);
+        setShowDetailForm(true);
+        setShowTable(false);
+    }
+
+    // This occurs when the user clicks on the EditCN button.  By setting
+    // isNewCN to false, we are telling the details form to edit the existing CN
+    // and by setting showDetailForm to true, we are telling the details form to show.
+    const onEditChangeNotification = () => {
+        setUpdateExisting(true);
+        setIsNewCN(false);
         setShowDetailForm(true);
         setShowTable(false);
     }
@@ -341,7 +351,7 @@ const MyChangeNotifications = () => {
                                 {selectedRows.length === 1 && <>
                                     {getCNStateForSelectedRow() === CNState.CREATED && <>
                                         {/* (5) EDIT */}
-                                        <div className="iconContainer ent-requires-selection " onClick={(e) => navigate('/')} ><i className={`material-icons ent-icon ent-blue`}>edit</i><div>Edit</div></div>
+                                        <div className="iconContainer ent-requires-selection " onClick={(e) => onEditChangeNotification()} ><i className={`material-icons ent-icon ent-blue`}>edit</i><div>Edit</div></div>
                                         {/* (5) SEEK APPROVAL */}
                                         <div className="iconContainer ent-requires-selection" onClick={(e) => onSeekApproval()}  ><i className={`material-icons ent-icon ent-orange`}>send</i><div>Seek Approval</div></div>
                                     </>}
@@ -437,7 +447,7 @@ const MyChangeNotifications = () => {
                             </>
                         }
                         {showDetailForm &&
-                            <ChangeNotificationDetailForm isNewCN={isNewCN} changeNotice={activeCN} onShowDetailsFormDismissed={onShowDetailsFormDismissed} setRequestedMocID={setRequestedMocID} approvers={approvers}></ChangeNotificationDetailForm>
+                            <ChangeNotificationDetailForm isNewCN={isNewCN} updateExisting={updateExisting} changeNotice={activeCN} onShowDetailsFormDismissed={onShowDetailsFormDismissed} setRequestedMocID={setRequestedMocID} approvers={approvers}></ChangeNotificationDetailForm>
                         }
 
                     </div>
