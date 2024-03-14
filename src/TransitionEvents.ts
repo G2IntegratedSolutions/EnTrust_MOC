@@ -40,7 +40,7 @@ export const OnUnderReviewCN = async (cn: ChangeNotification | any, user: any, a
     const html = `
     <h1>Request Review for Change Notification</h1>
     <hr>
-    <p>A Change Notification (CN) created by  ${getLastValueInArray(cn.creator)} is currently pending approval by   ${getLastValueInArray(cn.approver)}.
+    <p>A Change Notification (CN) created by  ${getLastValueInArray(cn.creator)} has beein moved to an "In Review" state by   ${getLastValueInArray(cn.approver)}.
     They are seeking your peer review of the CN. Please log into ENTRUST Moc Manager and 
     search for <b>Moc Number ${cn.mocNumber}</b>.  Please reach out to ${cn.approver[0].value} directly with your
     concerns, questions, or comments.   </p>

@@ -292,6 +292,11 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
         }];
     };
 
+    
+    // Fields that can be edited: 
+    // approver, shortReasonForChange, groupSelectionState, changeTopic, dateOfCreation, dateOfPublication, 
+    // dateOfImplementation, requiredDateOfCompletion, cateogry, changeType, description, impacts, location, 
+    // notes, attachments
     const handleUpdateCN = async (e: FormEvent) => {
         //ebugger;
         let newCN = { ...cn }
