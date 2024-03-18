@@ -26,7 +26,7 @@ const Header: React.FC = () => {
                                 <>
                                     {/* <div>Logged in as {user?.userName} {user?.isAdmin ? "ADMIN" : "USER"}</div> */}
                                     <div onClick={logout}>Logout</div>
-                                    <div>{user?.isCreator ? "(creator)" : user?.isStakeholder ? "": user?.isApprover ? "(approver)": user?.isAdmin ? "(admin)": "??"}</div>
+                                    <div>{user?.isCreator ? "(creator)" : user?.isStakeholder ? "": user?.isApprover ? "(approver)": user?.isAdmin ? "(admin)": user?.isReviewer ? "(reviewer)": "??"}</div>
                                 </>
                             ) : (
                                 <div>Login</div>

@@ -7,6 +7,7 @@ type User = {
   isApprover: boolean;
   isCreator: boolean;
   isStakeholder: boolean;
+  isReviewer: boolean;
   organization: string;
   uid: string;
   firstName: string; 
@@ -16,7 +17,9 @@ type User = {
 type AuthContextType = {
   isAuthenticated: boolean;
   user: User | null;
-  login: (email: string, userName: string, isAdmin: boolean, isApprover: boolean, isCreator: boolean, isStakeholder: boolean, organization: string, uid: string, firstName: string, lastName: string) => void;
+  login: (email: string, userName: string, isAdmin: boolean, isApprover: boolean,
+     isCreator: boolean, isStakeholder: boolean, isReviewer: boolean,
+     organization: string, uid: string, firstName: string, lastName: string) => void;
   logout: () => void;
 };
 
@@ -30,7 +33,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
 
-  const login = (email: string, userName: string, isAdmin: boolean, isApprover: boolean, isCreator: boolean, isStakeholder: boolean, organization: string, uid: string, firstName: string, lastName: string) => {
+  const login = (email: string, userName: string, isAdmin: boolean, 
+    isApprover: boolean, isCreator: boolean, isStakeholder: boolean, 
+    isReviewer: boolean, organization: string, uid: string, 
+    firstName: string, lastName: string) => {
     //When setUser is called, only one of isAdmin, isApprover, isCreator, or isStakeholder will be true
     //Even if the user has multiple roles, they must choose just one role for this session. 
     let roleCount = 0;
@@ -38,10 +44,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (isApprover) { roleCount++;}
     if (isCreator){ roleCount++;}
     if (isStakeholder){ roleCount++;}
+    if (isReviewer){ roleCount++;}
     //ebugger;
     if (roleCount === 1) {
       setIsAuthenticated(true);
-      setUser({ email, userName,  isAdmin, isApprover, isCreator, isStakeholder, organization, uid,firstName, lastName });
+      setUser({ email, userName,  isAdmin, isApprover, isCreator, isStakeholder, isReviewer, organization, uid,firstName, lastName });
     } else {
       setIsAuthenticated(false);
       setUser(null);

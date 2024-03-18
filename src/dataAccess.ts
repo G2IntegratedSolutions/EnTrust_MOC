@@ -94,8 +94,8 @@ export async function updateExistingCN(cn: ChangeNotification, newCN: Record<str
     });
 }
 
-export async function handleAssignToGroup(selectedUserEmail: string, currentOrg: string, selectedGroup: string,
-    groupsInOrg: any[], setGroupsForSelectedUser: any) {
+export async function handleAssignToGroup(selectedUserEmail: string, currentOrg: string, 
+    selectedGroup: string, groupsInOrg: any[], setGroupsForSelectedUser: any, makeReviewer: boolean) {
     console.log("Assigning user to group")
     let groupToAdd = selectedGroup
     if (groupToAdd === '') {
@@ -115,8 +115,40 @@ export async function handleAssignToGroup(selectedUserEmail: string, currentOrg:
                 let newGroups = [...groups, groupToAdd];
                 // Update the user's groups in the database
                 const userRef = doc.ref;
+                debugger;
                 await updateDoc(userRef, { groups: newGroups });
                 setGroupsForSelectedUser(newGroups);
+                if (makeReviewer){
+                    handleAssignReviewerToGroup(selectedUserEmail, currentOrg, selectedGroup, groupsInOrg, setGroupsForSelectedUser);
+                }
+            }
+        });
+    });
+}
+
+export async function handleAssignReviewerToGroup(selectedUserEmail: string, currentOrg: string, selectedGroup: string,
+    groupsInOrg: any[], setGroupsForSelectedUser: any) {
+    console.log("Making user a reviewer for group")
+    let groupToAdd = selectedGroup
+    if (groupToAdd === '') {
+        groupToAdd = currentOrg + "_" + groupsInOrg[0].name;
+    }
+    let currentUser = selectedUserEmail;
+
+    const usersCollection = collection(db, 'Users');
+    // Query the users collection for the selected user with an organization matching currentOrg
+    const qUsers = query(usersCollection, where("organization", "==", currentOrg), where("email", "==", currentUser));
+    getDocs(qUsers).then((querySnapshot) => {
+        querySnapshot.forEach(async (doc) => {
+            // Get the user's groups
+            let reviewerFors = doc.data().reviewerFor;
+            // Remove the selected group from the user's groups
+            if (reviewerFors.includes(groupToAdd) == false) {
+                let newGroups = [...reviewerFors, groupToAdd];
+                // Update the user's groups in the database
+                const userRef = doc.ref;
+                debugger;
+                await updateDoc(userRef, { reviewerFor: newGroups });
             }
         });
     });

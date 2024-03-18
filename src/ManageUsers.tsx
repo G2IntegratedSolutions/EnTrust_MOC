@@ -17,7 +17,7 @@ interface ManageUsersProps {
 }
 
 const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, refreshUsersInOrg }) => {
-    const [user, setUser] = useState<User>({ id: '', email: '', phone: '', organization: '', groups: [], firstName: '', lastName: '', isAdmin: false, isApprover: false, isCreator: false, isStakeholder: false, isReviewer: false });
+    const [user, setUser] = useState<User>({ id: '', email: '', phone: '', organization: '', groups: [], reviewerFor:[], firstName: '', lastName: '', isAdmin: false, isApprover: false, isCreator: false, isStakeholder: false, isReviewer: false });
     const [existingUserIndex, setExistingUserIndex] = useState<number>(0);
     const [existingUserPhone, setExistingUserPhone] = useState<string>('');
     const [existingUserEmail, setExistingUserEmail] = useState<string>('');
@@ -47,7 +47,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
         try {
             // Create a new user in Firebase Auth based on the email address provided and a default password
             const { email, phone, organization, groups, isAdmin, isApprover, isCreator, isStakeholder, firstName, lastName, isReviewer } = user;
-            const password = 'defaultPassword';
+            const password = 'asdfasdf';
             const newUserCreds = await createUserWithEmailAndPassword(auth, email.toLowerCase(), password);
             console.log('User created successfully');
             // Create a new user in Cloud Firestore
@@ -65,16 +65,25 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                 isReviewer: isReviewer,
                 organization: authContext.user?.organization,
                 groups: ['NONE'],
+                reviewerFor: ['NONE'],
             };
+
             const db = getFirestore();
             const usersCollectionRef = collection(db, 'Users');
-            await setDoc(doc(usersCollectionRef, newUserCreds?.user.uid), newUser);
-            refreshUsersInOrg();
-            setExistingUserPhone('');
-            toast.success('User successfully added!');
+            setDoc(doc(usersCollectionRef, newUserCreds?.user.uid), newUser).then(() => {
+                // ebugger;
+                refreshUsersInOrg();
+                setExistingUserPhone('');
+                toast.success('User successfully added!');
+            })
+            .catch((error) => {
+                debugger;
+                toast.error('Error creating user: ' + error);
+                // handle the error as needed, e.g. show a message to the user
+            });
         } catch (error) {
-            console.error('Error creating user:', error);
-            toast.error('Error creating user: ' + error);
+            // Handle any errors that occurred during user creation
+            console.error('Error creating user: ', error);
         }
     }
 
@@ -188,7 +197,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                             placeholder=
                             {usersInOrg && existingUserIndex >= 0 && existingUserIndex < usersInOrg.length ? usersInOrg[existingUserIndex].phone : ''}
                             value={existingUserPhone}
-                            onChange={(e) => {
+                            onChange={(e:any) => {
                                 setExistingUserPhone(e.target.value);
                                 //const phoneRegex = /^\(\d{3}\)\d{3}-\d{4}$/;
                                 const phoneRegex = /^(\(\d{3}\)\d{3}-\d{4}|)$/; // This regex allows for an empty string

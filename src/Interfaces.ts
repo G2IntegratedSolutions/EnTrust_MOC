@@ -47,6 +47,7 @@ export interface User {
     phone: string;
     organization: string;
     groups: string[];
+    reviewerFor: string[];
     isAdmin: boolean;
     isApprover: boolean;
     isCreator: boolean;
