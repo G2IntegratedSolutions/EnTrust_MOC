@@ -47,6 +47,7 @@ export interface User {
     phone: string;
     organization: string;
     groups: string[];
+    reviewerFor: string[];
     isAdmin: boolean;
     isApprover: boolean;
     isCreator: boolean;
@@ -106,19 +107,19 @@ export type ChangeNotification = {
     // events it is possible that they occur multip times (e.g. onActivated could occur after a CN is paused and then resumed).
     // In this case, the notes are stored as an array of CNField.  The last element in the array is the most recent note. But for
     // other events, it is only possible to have one note (e.g. onCompleted).  In this case, the note is stored as a single CNField.
-    onCreatedNotes: CNField,// A CN can only be created once. 
-    onPendingApprovalNotes: CNField[],// A CN can be moved into PENDING APPROVAL multiple times
-    onUnderReviewNotes: CNArrayField[], //Each reviewer can add a note for each version of the CN.  Only one note per reviewer per version (although a reviweer can modify their note)
-    onApprovedNotes: CNField, // A CN can only be approved once. 
-    onActivatedNotes: CNField[],// A CN can be reactivated after being re-scheduled
-    onCompletedNotes: CNField,// A CN can only be completed once. 
-    onArchivedNotes: CNField,// A CN can only be archived once. 
-    onRejectedNotes: CNField,// A CN can only be rejected once. 
-    onUpdatesRequiredNotes: CNField[],// A CN can be placed in the UPDATES REQUIRED state multiple times
-    onRescheduledNotes: CNField[],// A CN can be rescheduled multiple times
-    onCancelledNotes: CNField,// A CN can only be cancelled once. 
-    acknowledgements:  CNArrayField,// A CN can only be acknowledged in the version in which it was approved. Since it can only be approved on a single version, this is NOT a CNField[], however, because multiple stakeholders can acknowledge it, it uses the CNArrayField[] structure
-    objections: CNArrayField[],//Each stakeholder can object with a comment for the current version of the CN.  Only one objection per stakeholder per version (although a stakeholder can modify their objection).  When an objection is raised the approver is notified. 
+    onCreatedNotes: CNField|null,// A CN can only be created once. 
+    onPendingApprovalNotes: CNField[]|null,// A CN can be moved into PENDING APPROVAL multiple times
+    onUnderReviewNotes: CNArrayField[]|null, //Each reviewer can add a note for each version of the CN.  Only one note per reviewer per version (although a reviweer can modify their note)
+    onApprovedNotes: CNField|null, // A CN can only be approved once. 
+    onActivatedNotes: CNField[]|null,// A CN can be reactivated after being re-scheduled
+    onCompletedNotes: CNField|null,// A CN can only be completed once. 
+    onArchivedNotes: CNField|null,// A CN can only be archived once. 
+    onRejectedNotes: CNField|null,// A CN can only be rejected once. 
+    onUpdatesRequiredNotes: CNField[]|null,// A CN can be placed in the UPDATES REQUIRED state multiple times
+    onRescheduledNotes: CNField[]|null,// A CN can be rescheduled multiple times
+    onCancelledNotes: CNField|null,// A CN can only be cancelled once. 
+    acknowledgements:  CNArrayField|null,// A CN can only be acknowledged in the version in which it was approved. Since it can only be approved on a single version, this is NOT a CNField[], however, because multiple stakeholders can acknowledge it, it uses the CNArrayField[] structure
+    objections: CNArrayField[]|null,//Each stakeholder can object with a comment for the current version of the CN.  Only one objection per stakeholder per version (although a stakeholder can modify their objection).  When an objection is raised the approver is notified. 
     // The "latest" fields are convenience fields that are used to ease the ability to select
     latestApprover: string,
     latestState: string,

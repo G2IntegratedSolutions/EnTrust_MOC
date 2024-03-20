@@ -13,12 +13,15 @@ import { assertQualifiedTypeIdentifier } from '@babel/types';
 import { OnCreateCN } from './TransitionEvents';
 import { info } from 'console';
 import { doc, getDoc } from 'firebase/firestore';
-import { GetInfoFieldDescriptions } from './dataAccess';
+import { GetInfoFieldDescriptions, updateExistingCN } from './dataAccess';
 import { get } from 'http';
+import { getLastArrayInArray, getLastValueInArray } from './dataAccess';
+import { version } from 'os';
 
 interface ChangeNotificationDetailFormProps {
     changeNotice: ChangeNotification | null;
     isNewCN: boolean;
+    updateExisting: boolean;
     onShowDetailsFormDismissed: () => void;
     setRequestedMocID: React.Dispatch<React.SetStateAction<string>>;
     approvers: string[];
@@ -81,6 +84,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
     const [location, setLocation] = useState('');
     const [notes, setNotes] = useState('');
     const [attachments, setAttachments] = useState('');
+    const [reviewerVotes, setReviewerVotes] = useState<string[]>([]);
 
 
     const authContext = useAuth();
@@ -97,6 +101,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
 
     //Get the text for the information icons
     useEffect(() => {
+        //ebugger;
         const fetchData = async () => {
             const data = await GetInfoFieldDescriptions();
             setFieldDescriptions(data ?? {});
@@ -108,7 +113,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
         let theMocNumber: string = '';
         let theCreator: string = '';
         let theApprover: string = '';
-        let groupsForThisCN = "";
+        let groupsForThisCN: string[] = [];
         if (props?.isNewCN) {
             theMocNumber = generateRandomString(10);
             theCreator = authContext.user?.email ?? '';
@@ -128,29 +133,35 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
             setNotes('');
             setLocation('');
             setAttachments('');
+            setReviewerVotes([]);
         }
         else {
             theMocNumber = cn?.mocNumber ? cn?.mocNumber : '';
-            theCreator = getLastInArray(cn, 'creator');
-            theApprover = getLastInArray(cn, 'approver');
-            setShortReasonForChange(getLastInArray(cn, 'shortReasonForChange'));
-            setCNState(getLastInArray(cn, 'cnState'));
-            setChangeTopic(getLastInArray(cn, 'changeTopic'));
-            setSelectedChangeTopic(getLastInArray(cn, 'changeTopic'));
-            setDateOfCreation(getLastInArray(cn, 'dateOfCreation'));
-            setChangeType(getLastInArray(cn, 'changeType'));
-            setSelectedChangeType(getLastInArray(cn, 'changeType'));
-            setCategory(getLastInArray(cn, 'category'));
-            setSelectedChangeCategory(getLastInArray(cn, 'category'));
-            setDescriptionOfChange(getLastInArray(cn, 'descriptionOfChange'));
-            setImpacts(getLastInArray(cn, 'impacts'));
-            setLocation(getLastInArray(cn, 'location'));
-            setNotes(getLastInArray(cn, 'notes'));
-            setAttachments(getLastInArray(cn, 'attachments'));
+            theCreator = getLastValueInArray(cn?.creator ?? []);
+            theApprover = getLastValueInArray(cn?.approver ?? []);
+            setShortReasonForChange(getLastValueInArray(cn?.shortReasonForChange ?? []));
+            setCNState(getLastValueInArray(cn?.cnState ?? []));
+            setChangeTopic(getLastValueInArray(cn?.changeTopic ?? []));
+            setSelectedChangeTopic(getLastValueInArray(cn?.changeTopic ?? []));
+            setDateOfCreation(getLastValueInArray(cn?.dateOfCreation ?? []));
+            setRequiredDateOfCompletion(getLastValueInArray(cn?.requiredDateOfCompletion ?? []));
+            setTimeOfImplementation(getLastValueInArray(cn?.timeOfImplementation ?? []));
+            setDateOfPublication(getLastValueInArray(cn?.dateOfPublication ?? []));
+            setChangeType(getLastValueInArray(cn?.changeType ?? []));
+            setSelectedChangeType(getLastValueInArray(cn?.changeType ?? []));
+            setCategory(getLastValueInArray(cn?.category ?? []));
+            setSelectedChangeCategory(getLastValueInArray(cn?.category ?? []));
+            setDescriptionOfChange(getLastValueInArray(cn?.descriptionOfChange ?? []));
+            setImpacts(getLastValueInArray(cn?.impacts ?? []));
+            setLocation(getLastValueInArray(cn?.location ?? []));
+            setNotes(getLastValueInArray(cn?.notes ?? []));
+            setAttachments(getLastArrayInArray(cn?.attachments ?? []).join(','));
+            const rv = getLastArrayInArray(cn?.reviewerVotes ?? []);
+            setReviewerVotes(rv);
             // Here we get the pipe delimited groups (e.g. "North"|"South") for this CN
             // Later, when we get all of the groups for the organziation, we pass this in 
             // and it gets used to create the selection state (true or false) for the groups.
-            groupsForThisCN = getLastInArray(cn, 'groups')
+            groupsForThisCN = getLastArrayInArray(cn?.groups ?? []);
 
         }
         setMocNumber(theMocNumber);
@@ -159,21 +170,10 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
         getGroupsForOrganization(groupsForThisCN)
     }, [cn?.mocNumber, props?.isNewCN]);
 
-    interface ChangeNotification {
-        [key: string]: any;
-    }
 
     const getCNFieldValue = (fieldName: string) => {
         return cn && cn[fieldName] ? cn[fieldName] : '';
     }
-    const getLastInArray = (cn: ChangeNotification | null, cnPropName: string): string => {
-        if (!cn) return '';
-        const array = cn[cnPropName];
-        if (Array.isArray(array) && array.length > 0) {
-            return array[array.length - 1].value;
-        }
-        return ''
-    };
 
     const handleInfoClick = (id: string) => {
         const field = id.replaceAll(' ', '_');
@@ -256,8 +256,8 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
         setGroupSelectionState({ ...groupSelectionState, [groupName]: e.target.checked });
     }
 
-    const getGroupsForOrganization = async (groupsForThisCN = '') => {
-        const existingSelectedGroups = groupsForThisCN.split(('|'))
+    const getGroupsForOrganization = async (groupsForThisCN: string[]) => {
+        const existingSelectedGroups = groupsForThisCN; //groupsForThisCN.split(('|'))
         const organization = authContext.user?.organization;
         const db = getFirestore();
         const usersCollection = collection(db, 'Groups');
@@ -287,11 +287,56 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
         }];
     };
 
-    const getPipeDelimitedGroups = () => {
-        const selectedGroups = Object.entries(groupSelectionState)
-            .filter(([key, value]) => value)
-            .map(([key, value]) => key);
-        return selectedGroups.join('|');
+
+    // Fields that can be edited: 
+    // approver, shortReasonForChange, groupSelectionState, changeTopic, dateOfCreation, dateOfPublication, 
+    // dateOfImplementation, requiredDateOfCompletion, cateogry, changeType, description, impacts, location, 
+    // notes, attachments
+    const handleUpdateCN = async (e: FormEvent) => {
+        //ebugger;
+        let newCN = { ...cn }
+        // The cnVersion is the current version that the CN in firebase is at. When first created, it will be at version 1. 
+        // If we edit when the state is CREATED, then we are updating the original CN and the version will remain at 1.
+        // If we edit when the state is UPDATES_REQUIRED, then we will be advancing the version by 1 the next time we go to 
+        // PENDING APPROVAL (but not before), and as such, when updating fields we use a +1 version number. 
+        const cnDBVersion = cn?.version[cn?.version.length - 1].version as number
+        const cnDBState = getLastValueInArray(cn?.cnState ?? []);
+        const targetVersion = cnDBState === "UPDATES_REQUIRED" ? cnDBVersion + 1 : cnDBVersion;
+
+        const propertyMap = {
+            "category": selectedChangeCategory, "changeType": selectedChangeType, "shortReasonForChange": shortReasonForChange,
+            "descriptionOfChange": descriptionOfChange, "impacts": impacts, "location": location, "notes": notes,
+            "changeTopic": selectedChangeTopic, "dateOfCreation": dateOfCreation, "dateOfPublication": dateOfPublication,
+            "timeOfImplementation": timeOfImplementation, "requiredDateOfCompletion": requiredDateOfCompletion, "approver": approver, "cnState": cnState, "creator": creator
+        }
+        let doesRequireUpdates = false;
+        for (const [key, value] of Object.entries(propertyMap)) {
+            if (cn) {
+                if (getLastValueInArray(cn[key]) !== value) {
+                    // If the original CN value doesn't equal the newly proposed value, then we need to either create or edit an  entry
+                    // for the field with the target version number. 
+                    let versionOfFieldValueToEdit = -1;
+                    //ebugger;
+                    for (let i = 0; i < cn[key].length; i++) {
+                        if (cn[key][i].version === targetVersion) {
+                            versionOfFieldValueToEdit = i;
+                            break;
+                        }
+                    }
+                    if (versionOfFieldValueToEdit > -1) {
+                        // If the field already exists at the target version, then we just need to update the value
+                        newCN[key][versionOfFieldValueToEdit].value = value;
+                        doesRequireUpdates = true;
+                    }
+                }
+            }
+
+        }
+        if (doesRequireUpdates) {
+            if (cn) {
+                updateExistingCN(cn, newCN);
+            }
+        }
     }
 
     const handleCreateCN = async (e: FormEvent) => {
@@ -299,41 +344,52 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
         const version = 1;
         e.preventDefault();
         try {
+            let selGroups = []
+            for (const [key, value] of Object.entries(groupSelectionState)) {
+                if (value) {
+                    selGroups.push(key);
+                }
+            }
+            debugger;
             const cn: ChangeNotification = {
                 mocNumber,
-                creator: formatCnField(version,creator),
-                approver: formatCnField(version,approver),
-                shortReasonForChange: formatCnField(version,shortReasonForChange),
-                groups: formatCnField(version,getPipeDelimitedGroups()),
-                cnState: formatCnField(version,cnState),
-                changeTopic: formatCnField(version,selectedChangeTopic),
-                dateOfCreation: formatCnField(version,dateOfCreation),
+                creator: formatCnField(version, creator),
+                approver: formatCnField(version, approver),
+                shortReasonForChange: formatCnField(version, shortReasonForChange),
+                //groups: formatCnField(version, getPipeDelimitedGroups()),
+                groups: [{ version, value: selGroups }],
+                cnState: formatCnField(version, cnState),
+                changeTopic: formatCnField(version, selectedChangeTopic),
+                dateOfCreation: formatCnField(version, dateOfCreation),
                 dateOfPublication: formatCnField(version, dateOfPublication),
                 timeOfImplementation: formatCnField(version, timeOfImplementation),
-                requiredDateOfCompletion: formatCnField(version,requiredDateOfCompletion),
-                category: formatCnField(version,selectedChangeCategory),
-                changeType: formatCnField(version,selectedChangeType),
-                descriptionOfChange: formatCnField(version,descriptionOfChange),
+                requiredDateOfCompletion: formatCnField(version, requiredDateOfCompletion),
+                category: formatCnField(version, selectedChangeCategory),
+                changeType: formatCnField(version, selectedChangeType),
+                descriptionOfChange: formatCnField(version, descriptionOfChange),
                 impacts: formatCnField(version, impacts),
-                location: formatCnField(version,location),
-                notes: formatCnField(version,notes),
-                attachments: formatCnField(version,attachments),
-                organization: authContext?.user?.organization,
-                version: formatCnField(version,new Date().toUTCString() ),
+                location: formatCnField(version, location),
+                notes: formatCnField(version, notes),
+                attachments: [{ version, value: attachments.split(',') }],
+                organization: authContext?.user?.organization ?? "",
+                version: formatCnField(version, new Date().toUTCString()),
                 reviewerVotes: [],
-                onCreatedNotes: [],
+                onCreatedNotes: null,
+                onPendingApprovalNotes: [],
                 onUnderReviewNotes: [],
                 onActivatedNotes: [],
-                onCompletedNotes: [],
-                onArchivedNotes: [],
-                onRejectedNotes: [],
-                onUpdatesRequiredNotes: [],
-                onCancelledNotes: [],
-                acknowledgements: {},
-                objections: [],
+                onRescheduledNotes: [],
+                onApprovedNotes: null,
+                onCompletedNotes: null,
+                onArchivedNotes: null,
+                onRejectedNotes: null,
+                onUpdatesRequiredNotes: null,
+                onCancelledNotes: null,
+                acknowledgements: null,
+                objections: null,
                 latestApprover: approver,
                 latestState: cnState,
-                latestGroups: getPipeDelimitedGroups().split("|"),
+                latestGroups: selGroups,
                 latestDescriptionOfChange: descriptionOfChange,
                 latestShortReasonForChange: shortReasonForChange,
             };
@@ -390,22 +446,11 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                         disabled
                     />
                 </div>
-                {/* Owner */}
-                {/* <div className="mb-3" style={{ display: props?.isNewCN && hideFieldsForNew ? 'none' : 'unset' }}>
-                    <label htmlFor="owner" className="form-label">Owner</label>
-                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Owner')}>info</i>
-                    <input
-                        type="text"
-                        className="form-control"
-                        value={owner}
-                        disabled
-                    />
-                </div> */}
                 {/* Approver */}
                 <div className="mb-3">
                     <label htmlFor="approver" className="form-label">Select the Approver for this change</label>
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Approver')}>info</i>
-                    <select className='form-control' onChange={handleApproverChange} value={approver} disabled={props?.isNewCN == false}>
+                    <select className='form-control' onChange={handleApproverChange} value={approver} disabled={props?.isNewCN == false && props?.updateExisting == false}>
                         {approvers.map((approver, index) => {
                             return (
                                 <option key={index} value={approver}>
@@ -421,7 +466,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Short Description')}>info</i>
                     <input
                         type="text"
-                        disabled={props?.isNewCN == false}
+                        disabled={props?.isNewCN == false && props?.updateExisting == false}
                         className="form-control"
                         value={shortReasonForChange}
                         onChange={onChangeShortReasonForChange}
@@ -440,7 +485,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                                         className="form-check-input"
                                         id={groupName}
                                         type="checkbox"
-                                        disabled={props?.isNewCN == false}
+                                        disabled={props?.isNewCN == false && props?.updateExisting == false}
                                         onChange={(e) => handleCheckboxChange(e, groupName)}
                                     />
                                     <label style={{ marginLeft: '4px' }} className="form-check-label" htmlFor={groupName}>
@@ -469,7 +514,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Change Topic')}>info</i>
                     <select className='form-control'
                         value={selectedChangeTopic ? selectedChangeTopic : changeTopic}
-                        disabled={props?.isNewCN == false}
+                        disabled={props?.isNewCN == false && props?.updateExisting == false}
                         onChange={(e) => setSelectedChangeTopic(e.target.value)}>
                         {changeTopics.map((ct, index) => (
                             <option key={index} value={ct}>{ct}</option>
@@ -482,7 +527,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Date of Creation')}>info</i>
                     <input
                         type="date"
-                        disabled={props?.isNewCN == false}
+                        disabled={props?.isNewCN == false && props?.updateExisting == false}
                         className="form-control"
                         value={dateOfCreation}
                         onChange={(e) => setDateOfCreation(e.target.value)}
@@ -494,20 +539,20 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Date of Publication')}>info</i>
                     <input
                         type="date"
-                        disabled={props?.isNewCN == false}
+                        disabled={props?.isNewCN == false && props?.updateExisting == false}
                         className="form-control"
                         id="dateOfPublication"
                         value={dateOfPublication}
                         onChange={(e) => setDateOfPublication(e.target.value)}
                     />
                 </div>
-                {/* Time of Implementation */}
+                {/* Date of Implementation */}
                 <div className="mb-3">
                     <label htmlFor="timeOfImplementation" className="form-label">Date of Implementation</label>
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Date of Implementation')}>info</i>
                     <input
                         type="date"
-                        disabled={props?.isNewCN == false}
+                        disabled={props?.isNewCN == false && props?.updateExisting == false}
                         className="form-control"
                         id="timeOfImplementation"
                         value={timeOfImplementation} // Convert the value to a string
@@ -520,7 +565,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Required Date of Completion')}>info</i>
                     <input
                         type="date"
-                        disabled={props?.isNewCN == false}
+                        disabled={props?.isNewCN == false && props?.updateExisting == false}
                         className="form-control"
                         value={requiredDateOfCompletion}
                         onChange={(e) => setRequiredDateOfCompletion(e.target.value)}
@@ -532,7 +577,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Change Category')}>info</i>
                     <select className='form-control'
                         value={selectedChangeCategory}
-                        disabled={props?.isNewCN == false}
+                        disabled={props?.isNewCN == false && props?.updateExisting == false}
                         onChange={(e) => setSelectedChangeCategory(e.target.value)}>
                         {changeCategories.map((cat, index) => (
                             <option key={index} value={cat}>{cat}</option>
@@ -545,7 +590,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Change Type')}>info</i>
                     <select className='form-control'
                         value={selectedChangeType}
-                        disabled={props?.isNewCN == false}
+                        disabled={props?.isNewCN == false && props?.updateExisting == false}
                         onChange={(e) => setSelectedChangeType(e.target.value)}>
                         {changeTypes.map((ct, index) => (
                             <option key={index} value={ct}>{ct}</option>
@@ -558,7 +603,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Long Description')}>info</i>
                     <textarea
                         className="form-control"
-                        disabled={props?.isNewCN == false}
+                        disabled={props?.isNewCN == false && props?.updateExisting == false}
                         value={descriptionOfChange}
                         onChange={(e) => setDescriptionOfChange(e.target.value)}
                     />
@@ -569,7 +614,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Impacts')}>info</i>
                     <input
                         type="text"
-                        disabled={props?.isNewCN == false}
+                        disabled={props?.isNewCN == false && props?.updateExisting == false}
                         className="form-control"
                         value={impacts}
                         onChange={(e) => setImpacts(e.target.value)}
@@ -581,7 +626,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Location')}>info</i>
                     <input
                         type="text"
-                        disabled={props?.isNewCN == false}
+                        disabled={props?.isNewCN == false && props?.updateExisting == false}
                         className="form-control"
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
@@ -594,7 +639,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Notes')}>info</i>
                     <input
                         type="text"
-                        disabled={props?.isNewCN == false}
+                        disabled={props?.isNewCN == false && props?.updateExisting == false}
                         className="form-control"
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
@@ -606,7 +651,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Attachments')}>info</i>
                     <input
                         type="file"
-                        disabled={props?.isNewCN == false}
+                        disabled={props?.isNewCN == false && props?.updateExisting == false}
                         className="form-control"
                         id="attachments"
                         onChange={(e) => {
@@ -615,16 +660,62 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                         }}
                     />
                 </div>
+                {/* Reviewer Votes */}
+                <div className="mb-3">
+                    <label htmlFor="reviewerVotes" className="form-label">Reviewer Votes</label>
+                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('ReviewerVotes')}>info</i>
+                    {
+                        reviewerVotes.length > 0 &&
+                            reviewerVotes.map((vote, index) => {
+                                return (
+                                    <>
+                                        <div style={{ marginBottom: "20px", marginLeft: "20px", width: "60%" }}>
+                                            <p style={{ color: "var(--ent-orange)" }}>
+                                                <span>{vote.split("|")[1] === "YES" ? <i className={`material-icons ent-icon ent-green`}>thumb_up</i> : <i className={`material-icons ent-icon ent-red`}>thumb_down</i>}</span>
+                                                <span style={{ verticalAlign: "top", marginLeft: "5px" }}>{vote.split("|")[0]}</span>
+
+                                            </p>
+                                            <div key={index} style={{ marginBottom: "10px" }}>
+                                                <textarea
+
+                                                    disabled={props?.isNewCN == false && props?.updateExisting == false}
+                                                    className="form-control"
+                                                    value={vote.split("|")[2]}
+                                                    id="reviewerVotes"
+                                                />
+                                            </div>
+                                            <hr></hr>
+                                        </div>
+                                    </>
+
+                                );
+                            })
+  
+                    }
+                    {
+                        reviewerVotes.length === 0 &&
+                        <div style={{ marginBottom: "20px", marginLeft: "20px", width: "60%" }}>
+                            <p style={{ color: "var(--ent-orange)" }}>
+                                <span>No Reviewer Votes</span>
+                            </p>
+                        </div>
+                    }
+                </div>
             </form>
-            {props?.isNewCN &&
+            {props?.isNewCN ?
                 <>
-                    <button disabled={approver === 'UNSET'} className="btn btn-primary" onClick={handleCreateCN} >Create Change Notification</button>
+                    <button className="btn btn-primary" onClick={handleCreateCN} >Create Change Notification</button>
                     <button className="btn btn-primary" onClick={() => props?.onShowDetailsFormDismissed()} >Cancel</button>
+                </> :
+
+                <>
+                    {props?.updateExisting && <><button className="btn btn-primary" onClick={handleUpdateCN}>Update Change Notification</button>
+                        <button className="btn btn-primary" onClick={() => props?.onShowDetailsFormDismissed()} >Cancel</button></>}
                 </>
             }
+
         </div>
 
     );
 };
-
 export default ChangeNotificationDetailForm;

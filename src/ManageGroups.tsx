@@ -139,10 +139,11 @@ const ManageGroups: React.FC<ManageGroupsProps> = ({ groupsInOrg, setGroupsInOrg
                             placeholder=
                             {groupsInOrg && existingGroupIndex >= 0 && existingGroupIndex < groupsInOrg.length ? groupsInOrg[existingGroupIndex].name : ''}
                             value={existingGroupName}
-                            onChange={(e) => {
-                                setExistingGroupName(e.target.value);
-                                let isValidGroupName = e.target.value.length > 3;
-                            }}
+                            disabled
+                            // onChange={(e) => {
+                            //     setExistingGroupName(e.target.value);
+                            //     let isValidGroupName = e.target.value.length > 3;
+                            // }}
                         >
                         </input>
                     </div>

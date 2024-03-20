@@ -24,16 +24,43 @@ const ManagerUserGroupAssoc: React.FC<ManageUserGroupAssocProps> = ({ usersInOrg
     const authContext = useAuth();
     const [selectedGroupMembershipIndex, setSelectedGroupMembershipIndex] = useState<number | undefined>(0);
     const [groupsForSelectedUser, setGroupsForSelectedUser] = useState<Group[]>([]); // [ 'group1', 'group2'
-    const [selectedUserEmail, setSelectedUserEmail] = useState(authContext.user?.email);
+    const [selectedUserEmail, setSelectedUserEmail] = useState("");//authContext.user?.email);
     const [selectedGroup, setSelectedGroup] = useState('');
     const [selectedGroupMembersip, setSelectedGroupMembership] = useState<string>('');
+    const [isReviewer, setIsReviewer] = useState<boolean>(false);
+    const [isReviewerCheckVisisble, setIsReviewerCheckVisisble] = useState<boolean>(false);
+    const userSelectElementRef = useRef<HTMLSelectElement>(null);
 
     const handleSelectedUserEmail = async (e: ChangeEvent<HTMLSelectElement>) => {
         setSelectedUserEmail(e.target.value);
     }
 
     useEffect(() => {
+        // debugger;
+        const initialUser = userSelectElementRef.current?.value;
+        setSelectedUserEmail(initialUser ?? '');
+        const selectedUser = usersInOrg.filter((user) => user.email === initialUser);
+        if (selectedUser.length > 0) {
+            updateIsReviewer(selectedUser[0]);
+            
+        }
+        
+    }, []);
+
+    const updateIsReviewer = (user: User) => {
+        if (user.isReviewer) {
+            setIsReviewer(true);
+            setIsReviewerCheckVisisble(true);
+        }
+        else {
+            setIsReviewer(false);
+            setIsReviewerCheckVisisble(false);
+        }
+    }
+
+    useEffect(() => {
         // This code will be executed whenever selectedUserEmail changes
+        //debugger;
         console.log(selectedUserEmail);
         let selectedUser_Email = selectedUserEmail;
         let org = authContext.user?.organization;
@@ -45,6 +72,8 @@ const ManagerUserGroupAssoc: React.FC<ManageUserGroupAssocProps> = ({ usersInOrg
                 const selectedUserInOrg = querySnapshot.docs.map(doc => doc.data());
                 if (selectedUserInOrg.length > 0) {
                     setGroupsForSelectedUser(selectedUserInOrg[0].groups);
+                    updateIsReviewer(selectedUserInOrg[0] as User);
+
                 }
                 else {
                     setGroupsForSelectedUser([]);
@@ -75,24 +104,25 @@ const ManagerUserGroupAssoc: React.FC<ManageUserGroupAssocProps> = ({ usersInOrg
     }, [groupsForSelectedUser])
 
 
-    const handleNewGroupSubmit = async (e: FormEvent) => {
-        e.preventDefault();
-        try {
-            const randomString = generateRandomString(8);
-            // Create a new group in Cloud Firestore
-            const newGroup = {
-                id: randomString,
-                name: groupNameRef.current?.value,
-                description: groupDescriptionRef.current?.value,
-                organization: authContext.user?.organization,
-            };
-            const db = getFirestore();
-            const docRef = await addDoc(collection(db, 'Groups'), newGroup);
-            console.log('New group added with ID: ', docRef.id);
-        } catch (error) {
-            console.error('Error creating group:', error);
-        }
-    }
+    // const handleNewGroupSubmit = async (e: FormEvent) => {
+    //     e.preventDefault();
+    //     try {
+    //         const randomString = generateRandomString(8);
+    //         // Create a new group in Cloud Firestore
+    //         const newGroup = {
+    //             id: randomString,
+    //             name: groupNameRef.current?.value,
+    //             description: groupDescriptionRef.current?.value,
+    //             organization: authContext.user?.organization,
+    //         };
+    //         const db = getFirestore();
+    //         const docRef = await addDoc(collection(db, 'Groups'), newGroup);
+    //         console.log('New group added with ID: ', docRef.id);
+    //     } catch (error) {
+    //         console.error('Error creating group:', error);
+    //     }
+    // }
+
     const getGroupFromIndex = (id: string) => {
         return groupsInOrg.find((group) => group.id === id);
     }
@@ -110,19 +140,23 @@ const ManagerUserGroupAssoc: React.FC<ManageUserGroupAssocProps> = ({ usersInOrg
             querySnapshot.forEach(async (doc) => {
                 // Get the user's groups
                 let groups = doc.data().groups;
+                let reviewerFor = doc.data().reviewerFor;
                 // Remove the selected group from the user's groups
+                //ebugger;
                 let newGroups = groups.filter((group: string) => group !== groupToDelete);
+                let newReviewerFor = reviewerFor.filter((group: string) => group !== groupToDelete);
                 // Update the user's groups in the database
                 const userRef = doc.ref;
-                await updateDoc(userRef, { groups: newGroups });
+                await updateDoc(userRef, { reviewerFor: newReviewerFor, groups: newGroups });
                 setGroupsForSelectedUser(newGroups);
+                return true;
             });
         });
         console.log("Deleting selected group: " + groupToDelete)
     }
 
     return (
-        <div className={`${styles.associateUsersAndGroups} mocPage` }>
+        <div className={`${styles.associateUsersAndGroups} mocPage`}>
 
             <h2>Assign Users to Groups</h2>
 
@@ -131,7 +165,7 @@ const ManagerUserGroupAssoc: React.FC<ManageUserGroupAssocProps> = ({ usersInOrg
                 CN to one or more groups.  Every person in the group will be emailed when the CN is created or its status changes. </p>
             <div className="form-group">
                 <label htmlFor="group">Select a User</label>
-                <select className='form-control' onChange={handleSelectedUserEmail}>
+                <select ref={userSelectElementRef} className='form-control' onChange={handleSelectedUserEmail}>
                     {usersInOrg.map((user, index) => (
                         <option key={index} value={user.email}>{user.email}</option>
                     ))}
@@ -171,7 +205,13 @@ const ManagerUserGroupAssoc: React.FC<ManageUserGroupAssocProps> = ({ usersInOrg
                     })}
                 </select>
             </div>
-            <button className={`${styles.btn} btn btn-primary`} onClick={() => handleAssignToGroup(selectedUserEmail ?? '' ,authContext.user?.organization ?? '' ,selectedGroup, groupsInOrg, setGroupsForSelectedUser)}>Assign {selectedUserEmail} to selected group</button>
+            {isReviewerCheckVisisble &&
+                <div className="form-group">
+                    <input type="checkbox" onChange={e => setIsReviewer(e.target.checked)} className='form-check-input' checked={isReviewer} id="makeReviewerForGroup" />
+                    <label style={{ marginLeft: '5px' }} className='' htmlFor="makeReviewerForGroup">Make Reviewer for Group</label>
+                </div>
+            }
+            <button className={`${styles.btn} btn btn-primary`} onClick={() => handleAssignToGroup(selectedUserEmail ?? '', authContext.user?.organization ?? '', selectedGroup, groupsInOrg, setGroupsForSelectedUser, isReviewer)}>Assign {selectedUserEmail} to selected group</button>
             <br></br>
 
             {/* <button className={`${styles.btn} btn btn-danger`} onClick={handleAssignToGroup}>Remove selected group for user</button> */}

@@ -35,17 +35,17 @@ const commonFields = (cn: ChangeNotification, user: any, emailNotes: string) => 
 }
 
 //Also passed in is an array of approvers to email that were chosen by the primary approver
-export const OnUnderReviewCN = async (cn: ChangeNotification | any, user: any, approvers: string[], emailNotes: string) => {
-    const recipients = approvers.join(";");
+export const OnUnderReviewCN = async (cn: ChangeNotification | any, user: any, reviewers: string[], emailNotes: string) => {
+    const recipients = reviewers.join(";");
     const html = `
     <h1>Request Review for Change Notification</h1>
     <hr>
-    <p>A Change Notification (CN) created by  ${getLastValueInArray(cn.creator)} is currently pending approval by   ${getLastValueInArray(cn.approver)}.
+    <p>A Change Notification (CN) created by  ${getLastValueInArray(cn.creator)} has beein moved to an "In Review" state by   ${getLastValueInArray(cn.approver)}.
     They are seeking your peer review of the CN. Please log into ENTRUST Moc Manager and 
-    search for <b>Moc Number ${cn.mocNumber}</b>.  Please reach out to ${cn.approver[0].value} directly with your
+    search for <b>Moc Number ${cn.mocNumber}</b> where you can vote YES or NO on this change notification and attach your comments.  Please reach out to ${cn.approver[0].value} directly with your
     concerns, questions, or comments.   </p>
     ${commonFields(cn, user, emailNotes)}`;
-    const subject = `Request Reivew for Change Notification ${cn.mocNumber}`;
+    const subject = `Request Review for Change Notification ${cn.mocNumber}`;
     sendEmail(recipients, subject, html);
 }
 

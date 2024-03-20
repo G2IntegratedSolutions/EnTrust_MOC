@@ -29,6 +29,7 @@ const Login: React.FC = () => {
       // ebugger;
       const usersCollectionRef = collection(db, 'Users');
       const q = query(usersCollectionRef, where("email", "==", email));
+      // ebugger;
       const querySnapshot = await getDocs(q);
 
       //We should only have one user with this email address
@@ -59,8 +60,11 @@ const Login: React.FC = () => {
         if (doc.data().isStakeholder) {
           roles.push('Stakeholder');
         }
+        if (doc.data().isReviewer) {
+          roles.push('Reviewer');
+        }
         if (roles.length === 1) {
-          login(email, doc.data().UserName, doc.data().isAdmin, doc.data().isApprover, doc.data().isCreator, doc.data().isStakeholder, doc.data().organization, userCred.user.uid, doc.data().firstName, doc.data().lastName);
+          login(email, doc.data().UserName, doc.data().isAdmin, doc.data().isApprover, doc.data().isCreator, doc.data().isStakeholder, doc.data().isReviewer, doc.data().organization, userCred.user.uid, doc.data().firstName, doc.data().lastName);
           navigate('/');
         }
         if (roles.length === 0) {
@@ -75,6 +79,7 @@ const Login: React.FC = () => {
       });
       //ebugger;
     } catch (error) {
+      debugger;
       const err = error as Error;
       setError(err.message);
     }
@@ -96,8 +101,9 @@ const Login: React.FC = () => {
     const isApprover = e.target.value === 'Approver';
     const isCreator = e.target.value === 'Creator';
     const isStakeholder = e.target.value === 'Stakeholder';
+    const isReviewer = e.target.value === 'Reviewer';
     //ebugger;
-    login(email, loggedInUserData.userName, isAdmin, isApprover, isCreator, isStakeholder, loggedInUserData.organization, loggedInUserData.uid, loggedInUserData.firstName, loggedInUserData.lastName);
+    login(email, loggedInUserData.userName, isAdmin, isApprover, isCreator, isStakeholder,isReviewer, loggedInUserData.organization, loggedInUserData.uid, loggedInUserData.firstName, loggedInUserData.lastName);
     navigate('/');
   }
 

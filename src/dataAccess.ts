@@ -21,6 +21,9 @@ export async function getApproversForOrg(organization: string, emailToExclude: s
     return orgApprovers
 }
 export const getLastArrayInArray = (arr: CNArrayField[]) => {
+    if(arr === undefined || arr === null || arr.length === 0) {
+        return [];
+    }
     return arr[arr.length - 1].value;
 }
 
@@ -72,16 +75,29 @@ export async function acknowledgeActiveCN(activeCN: ChangeNotification, didAckno
         newMap[currentUserEmail] = didAcknowledge;
         let newDoc = { ...doc.data(), acknowledgements: newMap };
         updateDoc(doc.ref, newDoc).then(() => {
-            debugger
             console.log('Acknowledgment updated');
         }).catch((error: any) => {
             console.log('Error updating acknowledgment:', error);
         });
     });
 }
+export async function updateExistingCN(cn: ChangeNotification, newCN: Record<string, string>) {
+    //ebugger;
+    const mocID = cn.mocNumber;
+    const cnCollection = collection(db, 'changeNotifications');
+    const qCN = query(cnCollection, where("organization", "==", cn.organization), where("mocNumber", "==", mocID));
+    const querySnapshot = await getDocs(qCN);
+    querySnapshot.forEach((doc) => {
+        updateDoc(doc.ref, newCN).then(() => {
+            console.log('CN updated');
+        }).catch((error: any) => {
+            console.log('Error updating CN:', error);
+        });
+    });
+}
 
-export async function handleAssignToGroup(selectedUserEmail: string, currentOrg: string, selectedGroup: string,
-    groupsInOrg: any[], setGroupsForSelectedUser: any) {
+export async function handleAssignToGroup(selectedUserEmail: string, currentOrg: string, 
+    selectedGroup: string, groupsInOrg: any[], setGroupsForSelectedUser: any, makeReviewer: boolean) {
     console.log("Assigning user to group")
     let groupToAdd = selectedGroup
     if (groupToAdd === '') {
@@ -103,6 +119,36 @@ export async function handleAssignToGroup(selectedUserEmail: string, currentOrg:
                 const userRef = doc.ref;
                 await updateDoc(userRef, { groups: newGroups });
                 setGroupsForSelectedUser(newGroups);
+                if (makeReviewer){
+                    handleAssignReviewerToGroup(selectedUserEmail, currentOrg, selectedGroup, groupsInOrg, setGroupsForSelectedUser);
+                }
+            }
+        });
+    });
+}
+
+export async function handleAssignReviewerToGroup(selectedUserEmail: string, currentOrg: string, selectedGroup: string,
+    groupsInOrg: any[], setGroupsForSelectedUser: any) {
+    console.log("Making user a reviewer for group")
+    let groupToAdd = selectedGroup
+    if (groupToAdd === '') {
+        groupToAdd = currentOrg + "_" + groupsInOrg[0].name;
+    }
+    let currentUser = selectedUserEmail;
+
+    const usersCollection = collection(db, 'Users');
+    // Query the users collection for the selected user with an organization matching currentOrg
+    const qUsers = query(usersCollection, where("organization", "==", currentOrg), where("email", "==", currentUser));
+    getDocs(qUsers).then((querySnapshot) => {
+        querySnapshot.forEach(async (doc) => {
+            // Get the user's groups
+            let reviewerFors = doc.data().reviewerFor;
+            // Remove the selected group from the user's groups
+            if (reviewerFors.includes(groupToAdd) == false) {
+                let newGroups = [...reviewerFors, groupToAdd];
+                // Update the user's groups in the database
+                const userRef = doc.ref;
+                await updateDoc(userRef, { reviewerFor: newGroups });
             }
         });
     });

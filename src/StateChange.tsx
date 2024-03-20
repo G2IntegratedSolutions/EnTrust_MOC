@@ -94,36 +94,11 @@ const StateChange: React.FC<StateChangeProps> = ({ changeNotification, toState, 
     }
 
     return (
-        <div style={{ padding: '10px' }}>
+        <div style={{ padding: '10px'}}>
             <h2>Advance Change from {getLastValueInArray(changeNotification?.cnState as any)} to {toState}</h2>
             On this page, you can advance the Change Notification of your CN (MoC# {changeNotification?.mocNumber}) from
             from <b>{getLastValueInArray(changeNotification?.cnState as any)}</b> to <b>{toState}.</b>
             <br></br>
-            {toState === CNState.UNDER_REVIEW &&
-                <>
-                    <hr></hr>
-                    <div>To Transition to this state, you must select one or more approvers to review the CN. The approvers
-                        you select will be notified by email.  As the
-                        primary approver for this Change Notificiation, it is your responsibility to determine based on the reviewers
-                        feedback whether to approve or reject the CN.
-                    </div>
-                    {approvers.map((approver, index) => {
-                        return (
-                            <div key={index}>
-                                <input
-                                    type="checkbox"
-                                    id={approver}
-                                    name={approver}
-                                    value={approver}
-                                    onChange={handleChange}
-                                />
-                                <label style={{ marginLeft: '4px' }} htmlFor={approver}>{approver}</label>
-                            </div>
-                        )
-                    })}
-                    <hr></hr>
-                </>
-            }
             <p>
                 <p>You can optionally include text that will be sent to registered email/text recipents:</p>
                 <textarea onChange={(e) => setEmailNotes(e.target.value)} placeholder='Enter detail about this change - they will be sent to the email/text recipients and optionally become a permanent part of the CN.' style={{ width: '100%', height: '25vw' }}></textarea>
