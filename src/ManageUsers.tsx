@@ -17,11 +17,12 @@ interface ManageUsersProps {
 }
 
 const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, refreshUsersInOrg }) => {
-    const [user, setUser] = useState<User>({ id: '', email: '', phone: '', organization: '', groups: [], reviewerFor:[], firstName: '', lastName: '', isAdmin: false, isApprover: false, isCreator: false, isStakeholder: false, isReviewer: false });
+    const [user, setUser] = useState<User>({ id: '', email: '', phone: '', organization: '', groups: [], reviewerFor: [], firstName: '', lastName: '', isAdmin: false, isApprover: false, isCreator: false, isStakeholder: false, isReviewer: false });
     const [existingUserIndex, setExistingUserIndex] = useState<number>(0);
     const [existingUserPhone, setExistingUserPhone] = useState<string>('');
     const [existingUserEmail, setExistingUserEmail] = useState<string>('');
     const [existingUserIsAdmin, setExistingUserIsAdmin] = useState<boolean>(false);
+    const [existingUser, setExistingUser] = useState<User>({ id: '', email: '', phone: '', organization: '', groups: [], reviewerFor: [], firstName: '', lastName: '', isAdmin: false, isApprover: false, isCreator: false, isStakeholder: false, isReviewer: false });
     const [isPhoneValid, setIsPhoneValid] = useState(false);
     const [deleteLinkVisible, setDeleteLinkVisible] = useState(false);
     const authContext = useAuth();
@@ -30,6 +31,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
     useEffect(() => {
         if (usersInOrg.length > 0) {
             setExistingUserIsAdmin(usersInOrg[existingUserIndex].isAdmin);
+            setExistingUser(usersInOrg[existingUserIndex]);
             setDeleteLinkVisible(usersInOrg[existingUserIndex].email !== authContext.user?.email);
         }
 
@@ -76,14 +78,15 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                 setExistingUserPhone('');
                 toast.success('User successfully added!');
             })
-            .catch((error) => {
-                debugger;
-                toast.error('Error creating user: ' + error);
-                // handle the error as needed, e.g. show a message to the user
-            });
+                .catch((error) => {
+                    debugger;
+                    toast.error('Error creating user: ' + error);
+                    // handle the error as needed, e.g. show a message to the user
+                });
         } catch (error) {
             // Handle any errors that occurred during user creation
             console.error('Error creating user: ', error);
+            toast.error('Error creating user: ' + error);
         }
     }
 
@@ -91,25 +94,26 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
         const newIndex = (e.target as unknown as HTMLSelectElement).selectedIndex
         setExistingUserIndex(newIndex);
         setExistingUserIsAdmin(usersInOrg[newIndex].isAdmin);
+        setExistingUser(usersInOrg[newIndex]);
         setDeleteLinkVisible(usersInOrg[newIndex].email.toLowerCase() !== authContext.user?.email.toLowerCase());
     };
 
     const handleExistingUserUpdateSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        let currentUser = usersInOrg[existingUserIndex];
-        let newPhone = existingUserPhone !== "" ? existingUserPhone : currentUser.phone;
+        //let currentUser = usersInOrg[existingUserIndex];
+        //let newPhone = existingUserPhone !== "" ? existingUserPhone : currentUser.phone;
         // You can't update email - you need to delete and recreate the user
         //let newEmail = existingUserEmail !== "" ? existingUserEmail : currentUser.email;
-        let newIsAdmin = existingUserIsAdmin;
-        const idOfUserToUpdate = currentUser.id;
+        //let newIsAdmin = existingUserIsAdmin;
+        const idOfUserToUpdate = existingUser.id;
         const db = getFirestore();
         // find the user in the Users collection with the id of the user to update using a query
         const usersCollectionRef = collection(db, 'Users');
         const q = query(usersCollectionRef, where("id", "==", idOfUserToUpdate));
         const querySnapshot = await getDocs(q);
         querySnapshot.forEach((doc) => {
-            let newDoc = { phone: newPhone, isAdmin: newIsAdmin };
-            updateDoc(doc.ref, newDoc).then(() => {
+            
+            updateDoc(doc.ref, {...existingUser}).then(() => {
                 refreshUsersInOrg();
                 toast.success('Users successfully updated!');
             }).catch((error) => {
@@ -129,7 +133,11 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
         const q = query(usersCollectionRef, where("id", "==", idOfUserToDelete));
         const querySnapshot = await getDocs(q);
         querySnapshot.forEach((doc) => {
-            deleteDoc(doc.ref);
+            deleteDoc(doc.ref).then(() => {
+                toast.success('User successfully removed!');
+            }).catch((error) => {
+                toast.error('Error removing user: ' + error);
+            });
         });
         // In addition to deleting the user from the database, we also need to delete the user from Firebase Auth
         // This process requires the use of the firebase server SDK, which is not available in the browser
@@ -169,7 +177,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                         return (
                             <div key={index} className="form-group" >
                                 <label htmlFor={prop.field} className='form-label'>Make {prop.role}?</label>
-                                <input type="checkbox" name={prop.field}  onChange={handleNewUserChange}
+                                <input type="checkbox" name={prop.field} onChange={handleNewUserChange}
                                     checked={(user as any)[prop.field] ?? false}
                                 />
                             </div>
@@ -197,7 +205,8 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                             placeholder=
                             {usersInOrg && existingUserIndex >= 0 && existingUserIndex < usersInOrg.length ? usersInOrg[existingUserIndex].phone : ''}
                             value={existingUserPhone}
-                            onChange={(e:any) => {
+                            onChange={(e: any) => {
+                                setExistingUser({ ...existingUser, phone: e.target.value })
                                 setExistingUserPhone(e.target.value);
                                 //const phoneRegex = /^\(\d{3}\)\d{3}-\d{4}$/;
                                 const phoneRegex = /^(\(\d{3}\)\d{3}-\d{4}|)$/; // This regex allows for an empty string
@@ -213,10 +222,18 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                         </InputMask>
                     </div>
                     <div ><label>First Name</label><input className='form-control' type="text" name="firstName"
-                        value={usersInOrg?.[existingUserIndex]?.firstName || ''}
+                        value={existingUser.firstName || ''}
+                        onChange={(e: any) => {
+                            setExistingUser({ ...existingUser, firstName: e.target.value })
+                        }
+                        }
                     /></div>
                     <div ><label>Last Name</label><input className='form-control' type="text" name="lastName"
-                        value={usersInOrg?.[existingUserIndex]?.lastName || ''}
+                        value={existingUser.lastName || ''}
+                        onChange={(e: any) => {
+                            setExistingUser({ ...existingUser, lastName: e.target.value })
+                        }
+                        }
                     /></div>
                     <div ><label className='form-label'>Make Administrator?</label><input type="checkbox" name="isAdmin"
                         onChange={(e) => {
@@ -225,8 +242,9 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                                 return;
                             }
                             setExistingUserIsAdmin(e.target.checked);
+                            setExistingUser({ ...existingUser, isAdmin: e.target.checked });
                         }}
-                        checked={existingUserIsAdmin}
+                        checked={existingUser.isAdmin}
                     /></div>
                     {
                         roles.filter((prop) => prop.role !== Role.ADMIN).map((prop, index) => {
@@ -234,7 +252,10 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                                 <div key={index} className="form-group" >
                                     <label className='form-label'>Make {prop.role}?</label>
                                     <input type="checkbox" name={prop.role}
-                                        checked={(usersInOrg?.[existingUserIndex] as any)?.[prop.field] ?? false}
+                                        onChange={(e) => {
+                                            setExistingUser({ ...existingUser, [prop.field]: e.target.checked });
+                                        }}
+                                        checked={!!existingUser[prop.field as keyof User]}
                                     />
                                 </div>
                             )

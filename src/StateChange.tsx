@@ -48,7 +48,6 @@ const StateChange: React.FC<StateChangeProps> = ({ changeNotification, toState, 
                 updateDoc(doc.ref, newDoc).then(() => {
                     //refreshUsersAndGroupsInOrg();
                     toast.success('Change Notification successfully updated!');
-                    debugger;
                     switch (toState) {
                         case CNState.PENDING_APPROVAL:
                             OnSeekApprovalCN(changeNotification as ChangeNotification, authContext.user, emailNotes);

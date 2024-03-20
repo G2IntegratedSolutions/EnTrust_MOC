@@ -21,6 +21,9 @@ export async function getApproversForOrg(organization: string, emailToExclude: s
     return orgApprovers
 }
 export const getLastArrayInArray = (arr: CNArrayField[]) => {
+    if(arr === undefined || arr === null || arr.length === 0) {
+        return [];
+    }
     return arr[arr.length - 1].value;
 }
 
@@ -72,7 +75,6 @@ export async function acknowledgeActiveCN(activeCN: ChangeNotification, didAckno
         newMap[currentUserEmail] = didAcknowledge;
         let newDoc = { ...doc.data(), acknowledgements: newMap };
         updateDoc(doc.ref, newDoc).then(() => {
-            debugger
             console.log('Acknowledgment updated');
         }).catch((error: any) => {
             console.log('Error updating acknowledgment:', error);
@@ -80,7 +82,7 @@ export async function acknowledgeActiveCN(activeCN: ChangeNotification, didAckno
     });
 }
 export async function updateExistingCN(cn: ChangeNotification, newCN: Record<string, string>) {
-    debugger;
+    //ebugger;
     const mocID = cn.mocNumber;
     const cnCollection = collection(db, 'changeNotifications');
     const qCN = query(cnCollection, where("organization", "==", cn.organization), where("mocNumber", "==", mocID));
@@ -115,7 +117,6 @@ export async function handleAssignToGroup(selectedUserEmail: string, currentOrg:
                 let newGroups = [...groups, groupToAdd];
                 // Update the user's groups in the database
                 const userRef = doc.ref;
-                debugger;
                 await updateDoc(userRef, { groups: newGroups });
                 setGroupsForSelectedUser(newGroups);
                 if (makeReviewer){
@@ -147,7 +148,6 @@ export async function handleAssignReviewerToGroup(selectedUserEmail: string, cur
                 let newGroups = [...reviewerFors, groupToAdd];
                 // Update the user's groups in the database
                 const userRef = doc.ref;
-                debugger;
                 await updateDoc(userRef, { reviewerFor: newGroups });
             }
         });

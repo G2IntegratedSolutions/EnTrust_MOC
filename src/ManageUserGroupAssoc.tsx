@@ -144,7 +144,6 @@ const ManagerUserGroupAssoc: React.FC<ManageUserGroupAssocProps> = ({ usersInOrg
                 // Remove the selected group from the user's groups
                 //ebugger;
                 let newGroups = groups.filter((group: string) => group !== groupToDelete);
-                debugger;
                 let newReviewerFor = reviewerFor.filter((group: string) => group !== groupToDelete);
                 // Update the user's groups in the database
                 const userRef = doc.ref;

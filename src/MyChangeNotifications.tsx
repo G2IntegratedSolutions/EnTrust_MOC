@@ -15,21 +15,22 @@ import StateChange from './StateChange';
 import { auth } from './firebaseConfig';
 import { group } from 'console';
 import { act } from 'react-dom/test-utils';
-import { getApproversForOrg, acknowledgeActiveCN } from './dataAccess';
+import { getApproversForOrg, acknowledgeActiveCN, updateExistingCN } from './dataAccess';
 import SelectionTool from './SelectionTool';
 import ReportsTool from './ReportsTool';
 import { getLastValueInArray, getLastArrayInArray } from './dataAccess';
-
+import VoteTool from './VoteTool';
 
 const MyChangeNotifications = () => {
     const scrollableContainerRef = useRef(null);
     const navigate = useNavigate();
-    const columns = [' ', 'MOC#', 'Creator',  'Approver', 'Short Description', 'Groups', 'State', 'Topic', 'Creation Date', 'Publication Date', 'Date of Implementation', 'Required Date', 'Category', 'Change Type', 'Long Description', 'Impacts', 'Location', 'Notes', 'Attachments'];
-    const columnWidths = [25, 100, 200, 200, 200,  200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200]; // Adjust these values as needed
+    const columns = [' ', 'MOC#', 'Creator', 'Approver', 'Short Description', 'Groups', 'State', 'Topic', 'Creation Date', 'Publication Date', 'Date of Implementation', 'Required Date', 'Category', 'Change Type', 'Long Description', 'Impacts', 'Location', 'Notes', 'Attachments', 'Reviewer Votes'];
+    const columnWidths = [25, 100, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200]; // Adjust these values as needed
     const [selectedRows, setSelectedRows] = useState<number[]>([]);
     const [wasAcknowledged, setWasAcknowledged] = useState([false, false]);
     const [activeCN, setActiveCN] = useState<ChangeNotification | null>(null);
     const [showSelectionTools, setShowSelectionTools] = useState(false);
+    const [showVoteTool, setShowVoteTool] = useState(false);
     const [showReportTool, setShowReportTool] = useState(false);
     const [updateExisting, setUpdateExisting] = useState(false);
     //The icons in order are:
@@ -131,10 +132,14 @@ const MyChangeNotifications = () => {
                         latest["mocNumber"] = docData["mocNumber"];
                         latest["creator"] = docData["creator"];
                         latest["organization"] = org;
-                        const fields = [ "approver", "shortReasonForChange", "groups", "cnState", "changeTopic",
+                        const fields = ["approver", "shortReasonForChange", "groups", "cnState", "changeTopic",
                             "dateOfCreation", "dateOfPublication", "timeOfImplementation", "requiredDateOfCompletion",
-                            "category", "changeType", "descriptionOfChange", "impacts", "location", "notes", "attachments", "version"];
+                            "category", "changeType", "descriptionOfChange", "impacts", "location", "notes", "attachments", "version", "reviewerVotes"];
                         for (const field of fields) {
+                            // if(field === "reviewerVotes" && docData["mocNumber"].indexOf("DK") > -1) {
+                            //     debugger;
+                            // }
+                           
                             const array = docData[field];
 
                             if (Array.isArray(array) && array.length > 0) {
@@ -153,7 +158,13 @@ const MyChangeNotifications = () => {
                                 }
                             }
                             if (lastState === CNState.UNDER_REVIEW) {
-                                if (authContext.user?.isApprover === false) {
+                                //ebugger;
+                                if (authContext.user?.isReviewer === false && authContext.user?.isApprover === false) {
+                                    addToChangeNotifications = false;
+                                }
+                            }
+                            if (lastState === CNState.CREATED) {
+                                if (authContext.user?.isCreator === false) {
                                     addToChangeNotifications = false;
                                 }
                             }
@@ -170,7 +181,7 @@ const MyChangeNotifications = () => {
                             }
                         }
                     }
-                    setOriginalCnsForThisUser([...changeNotifications]);                   
+                    setOriginalCnsForThisUser([...changeNotifications]);
                     setCnsForThisUser(changeNotifications);
                     if (indexOfNewlyCreatedCNtoSelect !== -1) {
                         handleRowClick(indexOfNewlyCreatedCNtoSelect, changeNotifications[indexOfNewlyCreatedCNtoSelect]);
@@ -186,10 +197,12 @@ const MyChangeNotifications = () => {
 
     const handleRowClick = (index: number, changeNotification?: ChangeNotification) => {
         console.log('Selected rows:', index);
+        //ebugger;
         if (changeNotification === undefined) {
             changeNotification = cnsForThisUser[index];
         }
-        setActiveCN({ ...activeCN, ...changeNotification })
+        //setActiveCN({ ...activeCN, ...changeNotification })
+        setActiveCN(changeNotification);
         setSelectedRows([]);
         setSelectedRows([index]);
         setShowTable(true);
@@ -242,6 +255,10 @@ const MyChangeNotifications = () => {
         }
     }
 
+    const onVoteForCN = async () => {
+        setShowVoteTool(true);
+    }
+
     const onReviewCN = async () => {
         console.log(approvers);
         setRequestedToState(CNState.UNDER_REVIEW);
@@ -258,18 +275,18 @@ const MyChangeNotifications = () => {
 
     const onRequestEdit = async () => {
     }
-    const onCompleteCN= async () => {
+    const onCompleteCN = async () => {
         setRequestedToState(CNState.COMPLETED);
         setShowStateChange(true);
     }
-    const onArchiveCN= async () => {
+    const onArchiveCN = async () => {
         setRequestedToState(CNState.ARCHIVED);
         setShowStateChange(true);
     }
-    const onActivateCN= async () => {
+    const onActivateCN = async () => {
         setRequestedToState(CNState.ACTIVATED);
         setShowStateChange(true);
-    } 
+    }
     const handleClickSelectTool = () => {
         setShowSelectionTools(true);
     }
@@ -295,25 +312,63 @@ const MyChangeNotifications = () => {
         }
     }
 
+    const handleVote = (votedYes: boolean, comments: string): void => {
+        let version = 1;
+        //Target the active version of the CN (which updates after going to PENDING_APPROVAL)
+        if (activeCN?.version[0].version) {
+            version =  activeCN?.version[0].version;
+        }
+        //ebugger;
+        const newCN = { ...activeCN };
+        const reviewerVotes = activeCN?.reviewerVotes ?? [];
+
+        const thisVersionIndex = reviewerVotes.findIndex((entry) => entry.version == version);
+        const votesForThisVersion = thisVersionIndex > -1 ? reviewerVotes[thisVersionIndex].value : [];
+        debugger;
+        const user = authContext.user?.email;
+        const vote = votedYes ? "YES" : "NO";
+        const entry = user + "|" + vote + "|" + comments;
+        if (votesForThisVersion) {
+            votesForThisVersion.push(entry);
+        }
+        if (thisVersionIndex > -1) {
+            reviewerVotes[thisVersionIndex].value = votesForThisVersion;
+        }
+        else {
+            reviewerVotes.push({ version: version, value: votesForThisVersion });
+        }
+
+        newCN.reviewerVotes = reviewerVotes;
+
+
+        if (activeCN) {
+            updateExistingCN(activeCN, newCN).then(() => {
+                console.log("UPDATED CN:    ");
+            }).catch((error: any) => {
+            });
+        }
+
+        console.log('Voted Yes: ' + votedYes + ' emailNotes: ' + comments);
+    }
+
     const handleApplyExpression = (expressions: expression[]) => {
         const newCNsForThisUser: ChangeNotification[] = []
         originalCnsForThisUser.forEach(cn => {
             let expressionsMatch = true
             expressions.forEach(exp => {
                 let cnValue = "";
-                if(exp.fieldName !== "mocNumber"){
+                if (exp.fieldName !== "mocNumber") {
                     cnValue = getLastValueInArray(cn[exp.fieldName]);
                 }
-                else
-                {
+                else {
                     cnValue = cn[exp.fieldName];
                 }
-                if(exp.operator === "equals"){
-                    if (cnValue!== exp.value) {
+                if (exp.operator === "equals") {
+                    if (cnValue !== exp.value) {
                         expressionsMatch = false
                     }
                 }
-                if(exp.operator === "not equals"){
+                if (exp.operator === "not equals") {
                     if (cnValue === exp.value) {
                         expressionsMatch = false
                     }
@@ -328,17 +383,18 @@ const MyChangeNotifications = () => {
 
     return (
         <>
+            {showVoteTool && <VoteTool onApply={handleVote} onDismiss={() => setShowVoteTool(false)} ></VoteTool>}
             {showSelectionTools && <SelectionTool onApply={handleApplyExpression} onDismiss={() => setShowSelectionTools(false)} ></SelectionTool>}
-            {showReportTool && <ReportsTool  onDismiss={() => setShowReportTool(false)} changeNotices={cnsForThisUser}></ReportsTool>}
+            {showReportTool && <ReportsTool onDismiss={() => setShowReportTool(false)} changeNotices={cnsForThisUser}></ReportsTool>}
             {showStateChange ?
-                <StateChange changeNotification={activeCN} toState={requestedToState} approvers={approvers}  setShowStateChange={setShowStateChange} /> :
+                <StateChange changeNotification={activeCN} toState={requestedToState} approvers={approvers} setShowStateChange={setShowStateChange} /> :
                 <>
                     {(cnsForThisUser.length > 0 || authContext.user?.isCreator == true) && (showTable) ? (
                         <div className="scrollableContainer" ref={scrollableContainerRef} >
                             {/* (0) HOME */}
                             <div className="iconContainer ent-requires-selection" onClick={() => navigate(-1)} ><i className={`material-icons ent-icon`}>home</i><div>Back</div></div>
                             {/* (1) SEARCH - users can search for one or many CNs*/}
-                            <div className="iconContainer ent-requires-selection" onClick={() => handleClickSelectTool() }  ><i className={`material-icons ent-icon ent-orange`}>search</i><div>Search</div></div>
+                            <div className="iconContainer ent-requires-selection" onClick={() => handleClickSelectTool()}  ><i className={`material-icons ent-icon ent-orange`}>search</i><div>Search</div></div>
                             {authContext?.user?.isStakeholder && selectedRows.length === 1 && <>
                                 {/* (2) ACKNOWLEDGE - stakeholders can acknowledge or unacknowledge*/}
                                 <div className="iconContainer ent-requires-selection" onClick={(e) => handleAcknowledgeCN()}  ><i className={`material-icons ent-icon ent-green`}>star</i><div>Acknowledge</div></div>
@@ -355,6 +411,11 @@ const MyChangeNotifications = () => {
                                         {/* (5) SEEK APPROVAL */}
                                         <div className="iconContainer ent-requires-selection" onClick={(e) => onSeekApproval()}  ><i className={`material-icons ent-icon ent-orange`}>send</i><div>Seek Approval</div></div>
                                     </>}
+                                </>}
+                            </>}
+                            {authContext?.user?.isReviewer && <>
+                                {selectedRows.length === 1 && <>
+                                    <div className="iconContainer ent-requires-selection ent-approver" onClick={(e) => onVoteForCN()}  ><i className={`material-icons ent-icon ent-green`}>how_to_vote</i><div>Vote</div></div>
                                 </>}
                             </>}
                             {authContext?.user?.isApprover && <>
@@ -426,7 +487,8 @@ const MyChangeNotifications = () => {
                                                         impacts: getLastValueInArray(cn.impacts),
                                                         location: getLastValueInArray(cn.location),
                                                         notes: getLastValueInArray(cn.notes),
-                                                        attachments: getLastArrayInArray(cn.attachments)
+                                                        attachments: getLastArrayInArray(cn.attachments),
+                                                        reviewerVotes: getLastArrayInArray(cn.reviewerVotes)
                                                     };
                                                     return (
                                                         <tr className='tableRow' key={rowIndex} onClick={() => handleRowClick(rowIndex)} style={selectedRows.includes(rowIndex) ? { color: 'white', backgroundColor: 'var(--ent-blue)' } : {}}>
