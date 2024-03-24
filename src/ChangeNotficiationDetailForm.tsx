@@ -337,6 +337,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                 updateExistingCN(cn, newCN);
             }
         }
+        props?.onShowDetailsFormDismissed();
     }
 
     const handleCreateCN = async (e: FormEvent) => {
@@ -425,7 +426,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                 {/* MocNumber */}
                 <div className="mb-3" style={{ display: props?.isNewCN && hideFieldsForNew ? 'none' : 'unset' }}>
                     <label htmlFor="mocNumber" className="form-label">MoC Number (ID)</label>
-                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('Moc Number')}>info</i>
+                    <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('MoC Number')}>info</i>
                     <input
                         type="text"
                         className="form-control"

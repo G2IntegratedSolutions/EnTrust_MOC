@@ -89,7 +89,15 @@ h2{
   font-size: calc(10px + 2vmin);
   color: white;
 }
-
+footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color: var(--ent-blue);
+  color: var(--ent-light-blue);
+  text-align: center;
+}
 .App-link {
   color: #61dafb;
 }

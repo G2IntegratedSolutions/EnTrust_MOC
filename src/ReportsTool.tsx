@@ -31,7 +31,7 @@ const barColors = [
 ];
 
 const ReportsTool: React.FC<ReportsToolProps | null> = (props) => {
-    const reports = ['Select a Report', 'Change Notifications by Type|types', 'Change Notifications by Topic|topics', 'Change Notifications by State|states', 'Change Notifications by Category|categories', 'Acknowledgement by Stakeholder|stakeholders'];
+    const reports = ['Select a Report', 'Change Notifications by Type|types', 'Change Notifications by Topic|topics', 'Change Notifications by State|states', 'Change Notifications by Category|categories'];//, 'Acknowledgement by Stakeholder|stakeholders'];
     const [cnSateTopicTypeCategory, setCnStateTopicTypeCategory] = useState<any>();
     const [barData, setBarData] = useState({});
     const [barGraphData, setBarGraphData] = useState({ labels: [], datasets: [] } as any);
