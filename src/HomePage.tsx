@@ -58,6 +58,7 @@ const HomePage: React.FC = () => {
                         </div>
 
                     </div> */}
+                    <footer>version 1</footer>
                 </div>
 
             </div>
