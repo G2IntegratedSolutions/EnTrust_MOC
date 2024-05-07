@@ -68,7 +68,8 @@ const MyChangeNotifications = () => {
     useEffect(() => {
         const organization = authContext.user?.organization ?? '';
         getApproversForOrg(organization, authContext.user?.email).then((approvers) => {
-            setApprovers(approvers)
+            approvers.unshift("UNSET");
+            setApprovers(approvers);
         });
 
     }, []);
