@@ -23,7 +23,8 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
     const [existingUserEmail, setExistingUserEmail] = useState<string>('');
     const [existingUserIsAdmin, setExistingUserIsAdmin] = useState<boolean>(false);
     const [existingUser, setExistingUser] = useState<User>({ id: '', email: '', phone: '', organization: '', groups: [], reviewerFor: [], firstName: '', lastName: '', isAdmin: false, isApprover: false, isCreator: false, isStakeholder: false, isReviewer: false });
-    const [isPhoneValid, setIsPhoneValid] = useState(false);
+    const [isPhoneValid, setIsPhoneValid] = useState(true);
+    const [isExistingUserDirty, setExistingUserDirty] = useState(false);
     const [deleteLinkVisible, setDeleteLinkVisible] = useState(false);
     const authContext = useAuth();
     const roles = [{ role: Role.ADMIN, field: "isAdmin" }, { role: Role.CREATOR, field: "isCreator" }, { role: Role.APPROVER, field: "isApprover" }, { role: Role.REVIEWER, field: "isReviewer" }, { role: Role.STAKEHOLDER, field: "isStakeholder" }];
@@ -91,10 +92,14 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
     }
 
     const handlExistingUserChange = async (e: ChangeEvent<HTMLSelectElement>) => {
-        const newIndex = (e.target as unknown as HTMLSelectElement).selectedIndex
+        setExistingUserDirty(false);
+        setIsPhoneValid(true);
+        //ebugger;
+        const newIndex = (e.target as unknown as HTMLSelectElement).selectedIndex;
         setExistingUserIndex(newIndex);
         setExistingUserIsAdmin(usersInOrg[newIndex].isAdmin);
         setExistingUser(usersInOrg[newIndex]);
+        setExistingUserPhone(usersInOrg[newIndex].phone);
         setDeleteLinkVisible(usersInOrg[newIndex].email.toLowerCase() !== authContext.user?.email.toLowerCase());
     };
 
@@ -212,6 +217,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                                 const phoneRegex = /^(\(\d{3}\)\d{3}-\d{4}|)$/; // This regex allows for an empty string
                                 let isValidPhone = phoneRegex.test(e.target.value)
                                 setIsPhoneValid(isValidPhone);
+                                setExistingUserDirty(true);
                                 if (isValidPhone) {
 
                                     console.log("Phone number valid and set to " + e.target.value)
@@ -224,6 +230,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                     <div ><label>First Name</label><input className='form-control' type="text" name="firstName"
                         value={existingUser.firstName || ''}
                         onChange={(e: any) => {
+                            setExistingUserDirty(true);
                             setExistingUser({ ...existingUser, firstName: e.target.value })
                         }
                         }
@@ -231,6 +238,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                     <div ><label>Last Name</label><input className='form-control' type="text" name="lastName"
                         value={existingUser.lastName || ''}
                         onChange={(e: any) => {
+                            setExistingUserDirty(true);
                             setExistingUser({ ...existingUser, lastName: e.target.value })
                         }
                         }
@@ -253,6 +261,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                                     <label className='form-label'>Make {prop.role}?</label>
                                     <input type="checkbox" name={prop.role}
                                         onChange={(e) => {
+                                            setExistingUserDirty(true);
                                             setExistingUser({ ...existingUser, [prop.field]: e.target.checked });
                                         }}
                                         checked={!!existingUser[prop.field as keyof User]}
@@ -261,7 +270,7 @@ const ManageUsers: React.FC<ManageUsersProps> = ({ usersInOrg, setUsersInOrg, re
                             )
                         })
                     }
-                    <button className='btn btn-primary' disabled={!isPhoneValid} type="submit" >Update User</button>
+                    <button className='btn btn-primary' disabled={!(isExistingUserDirty && isPhoneValid)} type="submit" >Update User</button>
                 </form>
             </div>
         </div>
