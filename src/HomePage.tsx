@@ -58,7 +58,7 @@ const HomePage: React.FC = () => {
                         </div>
 
                     </div> */}
-                    <footer>version 0507241310</footer>
+                    <footer>version 06030755</footer>
                 </div>
 
             </div>
