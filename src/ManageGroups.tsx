@@ -138,12 +138,11 @@ const ManageGroups: React.FC<ManageGroupsProps> = ({ groupsInOrg, setGroupsInOrg
                         <input className={`${styles.narrow} form-control`} type="text" name="groupName"
                             placeholder=
                             {groupsInOrg && existingGroupIndex >= 0 && existingGroupIndex < groupsInOrg.length ? groupsInOrg[existingGroupIndex].name : ''}
-                            value={existingGroupName}
-                            disabled
-                            // onChange={(e) => {
-                            //     setExistingGroupName(e.target.value);
-                            //     let isValidGroupName = e.target.value.length > 3;
-                            // }}
+                            value={existingGroupName}                           
+                            onChange={(e) => {
+                                setExistingGroupName(e.target.value);
+                                let isValidGroupName = e.target.value.length > 3;
+                            }}
                         >
                         </input>
                     </div>
