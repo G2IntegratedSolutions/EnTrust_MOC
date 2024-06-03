@@ -263,16 +263,17 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
         const usersCollection = collection(db, 'Groups');
         const qGroupsForOrg = query(usersCollection, where("organization", "==", authContext.user?.organization));
         const groupsSnapshot = getDocs(qGroupsForOrg).then(async (querySnapshot) => {
+            // ebugger;
             const groups: string[] = [];
             let obj: Record<string, boolean> = {};
             querySnapshot.forEach((doc) => {
                 const group = doc.data() as Group;
-                groups.push(group.name);
+                groups.push(group.name + "|" + group.id);
                 if (existingSelectedGroups.includes(group.name)) {
-                    obj[group.name] = true;
+                    obj[group.name + "|" + group.id] = true;
                 }
                 else {
-                    obj[group.name] = false;
+                    obj[group.name + "|" + group.id] = false;
                 }
             });
             setGroupsForOrganization(groups);
@@ -348,10 +349,11 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
             let selGroups = []
             for (const [key, value] of Object.entries(groupSelectionState)) {
                 if (value) {
-                    selGroups.push(key);
+                    debugger;
+                    selGroups.push(key.split('|')[1]);
                 }
             }
-            debugger;
+            
             const cn: ChangeNotification = {
                 mocNumber,
                 creator: formatCnField(version, creator),
@@ -490,7 +492,7 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                                         onChange={(e) => handleCheckboxChange(e, groupName)}
                                     />
                                     <label style={{ marginLeft: '4px' }} className="form-check-label" htmlFor={groupName}>
-                                        {groupName}
+                                        {groupName.split('|')[0]}
                                     </label>
                                 </div>
                             );
@@ -667,31 +669,31 @@ const ChangeNotificationDetailForm: React.FC<ChangeNotificationDetailFormProps |
                     <i className={`material-icons ent-mini-icon`} onClick={() => handleInfoClick('ReviewerVotes')}>info</i>
                     {
                         reviewerVotes.length > 0 &&
-                            reviewerVotes.map((vote, index) => {
-                                return (
-                                    <>
-                                        <div style={{ marginBottom: "20px", marginLeft: "20px", width: "60%" }}>
-                                            <p style={{ color: "var(--ent-orange)" }}>
-                                                <span>{vote.split("|")[1] === "YES" ? <i className={`material-icons ent-icon ent-green`}>thumb_up</i> : <i className={`material-icons ent-icon ent-red`}>thumb_down</i>}</span>
-                                                <span style={{ verticalAlign: "top", marginLeft: "5px" }}>{vote.split("|")[0]}</span>
+                        reviewerVotes.map((vote, index) => {
+                            return (
+                                <>
+                                    <div style={{ marginBottom: "20px", marginLeft: "20px", width: "60%" }}>
+                                        <p style={{ color: "var(--ent-orange)" }}>
+                                            <span>{vote.split("|")[1] === "YES" ? <i className={`material-icons ent-icon ent-green`}>thumb_up</i> : <i className={`material-icons ent-icon ent-red`}>thumb_down</i>}</span>
+                                            <span style={{ verticalAlign: "top", marginLeft: "5px" }}>{vote.split("|")[0]}</span>
 
-                                            </p>
-                                            <div key={index} style={{ marginBottom: "10px" }}>
-                                                <textarea
+                                        </p>
+                                        <div key={index} style={{ marginBottom: "10px" }}>
+                                            <textarea
 
-                                                    disabled={props?.isNewCN == false && props?.updateExisting == false}
-                                                    className="form-control"
-                                                    value={vote.split("|")[2]}
-                                                    id="reviewerVotes"
-                                                />
-                                            </div>
-                                            <hr></hr>
+                                                disabled={props?.isNewCN == false && props?.updateExisting == false}
+                                                className="form-control"
+                                                value={vote.split("|")[2]}
+                                                id="reviewerVotes"
+                                            />
                                         </div>
-                                    </>
+                                        <hr></hr>
+                                    </div>
+                                </>
 
-                                );
-                            })
-  
+                            );
+                        })
+
                     }
                     {
                         reviewerVotes.length === 0 &&
