@@ -100,7 +100,7 @@ const ReportsTool: React.FC<ReportsToolProps | null> = (props) => {
         ]
     };
     //Sample Data
-    // Test Comment
+    // Test Comment 2
     const sampleData = {
         labels: ['January', 'February', 'March'],
         datasets: [
