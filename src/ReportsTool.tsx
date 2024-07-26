@@ -100,7 +100,7 @@ const ReportsTool: React.FC<ReportsToolProps | null> = (props) => {
         ]
     };
     //Sample Data
-    // Test Comment 2
+    // Test Comment for Azure Dev Ops
     const sampleData = {
         labels: ['January', 'February', 'March'],
         datasets: [
